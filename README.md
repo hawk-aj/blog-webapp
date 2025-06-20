@@ -16,7 +16,7 @@ A modern, responsive portfolio website built with Flask (backend) and React (fro
 
 ## Video Walkthrough
 
-[Video Walkthrough](https://youtu.be/_T89J8Fggcc)
+[![video-demo](https://i9.ytimg.com/vi/_T89J8Fggcc/mqdefault.jpg?sqp=CIDA1cIG-oaymwEmCMACELQB8quKqQMa8AEB-AH-CYACiAWKAgwIABABGEAgZShHMA8=&rs=AOn4CLA6BAuIt0n2s0UM2oHCMPENUrzfPg)](https://youtu.be/_T89J8Fggcc)
 
 This video walkthrough demonstrates the key features of the portfolio website, including:
 - Navigation through different sections
