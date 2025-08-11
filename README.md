@@ -1,203 +1,210 @@
-# Aarya Jha - Portfolio Website
+# Aarya Jha Portfolio Website - AWS Deployment
 
-A modern, responsive portfolio website built with Flask (backend) and React (frontend), showcasing data science expertise, projects, blog posts, and personal insights.
+This repository contains the CloudFormation template and deployment scripts for deploying Aarya Jha's portfolio website on AWS EC2.
 
-## Features
+## 🚀 Quick Start
 
-- **Modern Design**: Dark theme with gradient accents and smooth animations
-- **Responsive Layout**: Works perfectly on desktop, tablet, and mobile devices
-- **Interactive Sections**:
-  - Home: Hero section with animated elements and recent blog highlights
-  - About: Personal journey, skills, education, and contact information
-  - Work: Professional experience with detailed project descriptions
-  - Blogs: Technical articles about data science and AI/ML
-  - Ramblings: Personal thoughts from coffee shops, sunsets, and coding sessions
-  - Contact: Contact form with FAQ section
-
-## Video Walkthrough
-
-[![video-demo](https://i9.ytimg.com/vi/_T89J8Fggcc/mqdefault.jpg?sqp=CIDA1cIG-oaymwEmCMACELQB8quKqQMa8AEB-AH-CYACiAWKAgwIABABGEAgZShHMA8=&rs=AOn4CLA6BAuIt0n2s0UM2oHCMPENUrzfPg)](https://youtu.be/_T89J8Fggcc)
-
-This video walkthrough demonstrates the key features of the portfolio website, including:
-- Navigation through different sections
-- Responsive design across various screen sizes
-- Interactive elements and animations
-- Content organization and presentation
-
-*Note: Replace `YOUTUBE_VIDEO_ID` with the actual YouTube video ID once the walkthrough is recorded and uploaded.*
-
-## Tech Stack
-
-### Backend (Flask)
-- Flask 2.3.3
-- Flask-CORS for cross-origin requests
-- RESTful API endpoints
-- JSON data storage (easily replaceable with database)
-
-### Frontend (React)
-- React 18.2.0
-- React Router for navigation
-- Framer Motion for animations
-- Lucide React for icons
-- Axios for API calls
-- Modern CSS with CSS variables
-
-## Project Structure
-
-```
-portfolio-webapp/
-├── backend/
-│   ├── app.py              # Flask application
-│   └── requirements.txt    # Python dependencies
-├── frontend/
-│   ├── public/
-│   │   └── index.html     # HTML template
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Navbar.js  # Navigation component
-│   │   │   └── Navbar.css
-│   │   ├── pages/
-│   │   │   ├── Home.js    # Landing page
-│   │   │   ├── About.js   # About page
-│   │   │   ├── Work.js    # Experience page
-│   │   │   ├── Blogs.js   # Blog listing
-│   │   │   ├── BlogPost.js # Individual blog post
-│   │   │   ├── Ramblings.js # Personal thoughts
-│   │   │   └── Contact.js # Contact form
-│   │   ├── App.js         # Main React component
-│   │   ├── App.css        # Component styles
-│   │   ├── index.js       # React entry point
-│   │   └── index.css      # Global styles
-│   └── package.json       # Node.js dependencies
-└── README.md
+### Windows Users
+```cmd
+deploy-fixed.bat your-key-pair-name
 ```
 
-## Installation & Setup
-
-### Prerequisites
-- Python 3.8+
-- Node.js 16+
-- npm or yarn
-
-### Backend Setup
-
-1. Navigate to the backend directory:
+### Linux/macOS Users
 ```bash
-cd portfolio-webapp/backend
+./deploy-fixed.sh your-key-pair-name
 ```
 
-2. Create a virtual environment (recommended):
+## 📁 File Structure
+
+### Core Files
+- `cloudformation-fixed.yaml` - **Fixed CloudFormation template (use this one!)**
+- `cloudformation.yaml` - Original template (has issues, don't use)
+
+### Windows Deployment
+- `deploy-fixed.bat` - Windows deployment script
+- `cleanup-fixed.bat` - Windows cleanup script
+- `DEPLOYMENT-GUIDE-WINDOWS.md` - Complete Windows deployment guide
+
+### Linux/macOS Deployment
+- `deploy-fixed.sh` - Linux/macOS deployment script
+- `cleanup-fixed.sh` - Linux/macOS cleanup script
+- `deployment-guide.md` - Complete Linux/macOS deployment guide
+
+### Documentation
+- `README.md` - This file
+- `TROUBLESHOOTING.md` - Comprehensive troubleshooting guide
+- `nginx.conf` - Nginx configuration reference
+- `nginx-ip-access.conf` - IP-based access configuration
+
+### Application Files
+- `backend/` - Flask backend application
+  - `app.py` - Main Flask application with your portfolio data
+  - `requirements.txt` - Python dependencies
+- `frontend/` - React frontend application
+  - `package.json` - Node.js dependencies
+  - `src/` - React source code
+
+## 🔧 What's Fixed
+
+The `cloudformation-fixed.yaml` template addresses all the cloud-init failures from the original template:
+
+### Issues Fixed:
+1. ✅ **Script Syntax Errors** - Fixed EOF markers and shell script formatting
+2. ✅ **Error Handling** - Added comprehensive error handling that continues execution
+3. ✅ **Service Management** - Improved systemd service configurations
+4. ✅ **Node.js Installation** - Reliable installation method with fallbacks
+5. ✅ **Nginx Configuration** - Corrected proxy settings and security headers
+6. ✅ **Application Integration** - Includes your actual Flask and React code
+7. ✅ **Monitoring** - Service monitoring and auto-restart capabilities
+8. ✅ **Logging** - Enhanced logging for troubleshooting
+
+### New Features:
+- 🔄 **Automatic Service Recovery** - Services restart automatically if they fail
+- 📊 **Service Monitoring** - Built-in monitoring script runs every 5 minutes
+- 🛡️ **Security Headers** - Proper security headers in Nginx
+- 📝 **Comprehensive Logging** - All operations logged for troubleshooting
+- 🔒 **SSL Support** - Automatic SSL certificate setup with certbot
+- 💾 **Fallback Mechanisms** - If React build fails, serves a basic HTML page
+
+## 🌐 What Gets Deployed
+
+After successful deployment, you'll have:
+
+### 1. Main Website (`http://your-ip/`)
+- React frontend with your portfolio
+- Responsive design
+- API integration with Flask backend
+
+### 2. Backend API (`http://your-ip/api/`)
+- `/api/profile` - Your profile information
+- `/api/experience` - Work experience data
+- `/api/blogs` - Blog posts
+- `/api/ramblings` - Personal thoughts and observations
+
+### 3. Jupyter Notebook (`http://your-ip/jupyter`)
+- Interactive Python environment
+- Pre-configured for easy access
+- No password required (can be changed for production)
+
+## 📋 Prerequisites
+
+1. **AWS Account** with appropriate permissions
+2. **AWS CLI** installed and configured (`aws configure`)
+3. **EC2 Key Pair** created in your target region
+4. **Domain name** (optional, defaults to aaryajha.com)
+
+## 🚀 Deployment Instructions
+
+### Option 1: Automated Scripts (Recommended)
+
+#### Windows:
+```cmd
+cd portfolio-webapp
+deploy-fixed.bat your-key-pair-name
+```
+
+#### Linux/macOS:
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+cd portfolio-webapp
+./deploy-fixed.sh your-key-pair-name
 ```
 
-3. Install Python dependencies:
+### Option 2: AWS Console
+1. Upload `cloudformation-fixed.yaml` to CloudFormation
+2. Set parameters (KeyName, DomainName, InstanceType)
+3. Create stack and wait for completion
+
+### Option 3: AWS CLI
 ```bash
-pip install -r requirements.txt
+aws cloudformation create-stack \
+  --stack-name portfolio-website-fixed \
+  --template-body file://cloudformation-fixed.yaml \
+  --parameters ParameterKey=KeyName,ParameterValue=your-key-pair \
+  --capabilities CAPABILITY_IAM \
+  --region us-east-1
 ```
 
-4. Run the Flask server:
+## 🔍 Monitoring & Troubleshooting
+
+### Check Deployment Status
+- **AWS Console**: CloudFormation → Stacks → portfolio-website-fixed
+- **Command Line**: `aws cloudformation describe-stacks --stack-name portfolio-website-fixed`
+
+### Access Logs
 ```bash
-python app.py
+# SSH into the instance
+ssh -i your-key.pem ec2-user@your-instance-ip
+
+# Check deployment logs
+sudo tail -f /var/log/user-data.log
+
+# Check service status
+sudo systemctl status nginx portfolio-backend jupyter
+
+# Check service logs
+sudo journalctl -u portfolio-backend -f
 ```
 
-The backend will be available at `http://localhost:5000`
+### Common Issues
+- **Cloud-init failures**: Check `/var/log/user-data.log`
+- **Service startup issues**: Check `systemctl status <service-name>`
+- **Website not accessible**: Verify security groups and DNS settings
+- **API not working**: Check Flask backend service status
 
-### Frontend Setup
+See `TROUBLESHOOTING.md` for detailed solutions.
 
-1. Navigate to the frontend directory:
+## 🧹 Cleanup
+
+### Windows:
+```cmd
+cleanup-fixed.bat
+```
+
+### Linux/macOS:
 ```bash
-cd portfolio-webapp/frontend
+./cleanup-fixed.sh
 ```
 
-2. Install Node.js dependencies:
-```bash
-npm install
-```
+This will delete all AWS resources and stop billing.
 
-3. Start the React development server:
-```bash
-npm start
-```
+## 💰 Cost Estimate
 
-The frontend will be available at `http://localhost:3000`
+- **t3.micro instance**: ~$8-10/month (Free Tier eligible)
+- **Elastic IP**: Free when attached to running instance
+- **Data transfer**: Minimal for personal portfolio
+- **Total**: ~$8-10/month (or free with AWS Free Tier)
 
-## API Endpoints
+## 🔒 Security Features
 
-- `GET /api/profile` - Get profile information
-- `GET /api/experience` - Get work experience data
-- `GET /api/blogs` - Get all blog posts
-- `GET /api/blogs/<id>` - Get specific blog post
-- `GET /api/ramblings` - Get all ramblings
-- `POST /api/contact` - Submit contact form
+- **Restricted SSH access** (configurable IP ranges)
+- **Security headers** in Nginx configuration
+- **Automatic SSL certificates** with Let's Encrypt
+- **Service isolation** with proper user permissions
+- **Firewall rules** via AWS Security Groups
 
-## Customization
+## 📚 Documentation
 
-### Adding New Content
+- **Windows Users**: Read `DEPLOYMENT-GUIDE-WINDOWS.md`
+- **Linux/macOS Users**: Read `deployment-guide.md`
+- **Troubleshooting**: Read `TROUBLESHOOTING.md`
+- **Application Details**: Check `backend/app.py` and `frontend/src/`
 
-1. **Blog Posts**: Edit the `BLOG_POSTS` array in `backend/app.py`
-2. **Experience**: Modify the `EXPERIENCE_DATA` array in `backend/app.py`
-3. **Ramblings**: Update the `RAMBLINGS` array in `backend/app.py`
-4. **Profile Info**: Change the `PROFILE_DATA` object in `backend/app.py`
+## 🤝 Support
 
-### Styling
+If you encounter issues:
 
-- Global styles: `frontend/src/index.css`
-- Component styles: `frontend/src/App.css`
-- Navigation styles: `frontend/src/components/Navbar.css`
+1. Check the appropriate deployment guide for your OS
+2. Review the troubleshooting guide
+3. Check AWS CloudFormation events in the console
+4. Examine the user-data logs on the EC2 instance
 
-### Colors & Theme
+## 📝 Notes
 
-The color scheme is defined in CSS variables in `frontend/src/index.css`:
+- The template includes comprehensive error handling and fallback mechanisms
+- Most issues should be automatically resolved or clearly logged
+- The deployment is production-ready with monitoring and auto-recovery
+- All your actual portfolio data is included in the Flask backend
 
-```css
-:root {
-  --primary-color: #0066cc;
-  --secondary-color: #00a8ff;
-  --accent-color: #ff6b6b;
-  --dark-bg: #0a0a0a;
-  --light-bg: #1a1a1a;
-  /* ... more variables */
-}
-```
+---
 
-## Deployment
-
-### Backend Deployment
-- Can be deployed to platforms like Heroku, Railway, or DigitalOcean
-- For production, consider using a proper database instead of in-memory data
-- Add environment variables for configuration
-
-### Frontend Deployment
-- Build the React app: `npm run build`
-- Deploy to platforms like Netlify, Vercel, or GitHub Pages
-- Update API endpoints to point to your deployed backend
-
-## Features Highlights
-
-### Design Elements
-- **Catchy Title**: "Aarya.ai" with brain and code icons
-- **Data Science Theme**: AI/ML focused content and terminology
-- **Smooth Animations**: Framer Motion for engaging user experience
-- **Responsive Design**: Mobile-first approach
-
-### Content Sections
-- **Professional Experience**: Detailed work history with Atomberg Technologies, Simbo.ai, and CME
-- **Technical Blog Posts**: In-depth articles about recommendation systems, speaker diarization, and AWS
-- **Personal Ramblings**: Unique content about coffee culture in Pune, WW2 history connections, and sunset observations
-- **Skills Showcase**: Programming languages, tools, frameworks, and expertise areas
-
-### Interactive Elements
-- **Contact Form**: Functional form with validation and status feedback
-- **Navigation**: Smooth scrolling and active state indicators
-- **Hover Effects**: Subtle animations on cards and buttons
-- **Loading States**: Spinners and skeleton screens for better UX
-
-## Contributing
-
-Feel free to fork this project and customize it for your own portfolio. The code is well-structured and documented for easy modification.
-
-## License
-
-This project is open source and available under the MIT License.
+**Ready to deploy?** Choose your platform and run the deployment script! 🚀

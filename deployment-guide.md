@@ -2,6 +2,20 @@
 
 This guide provides instructions for deploying the portfolio website to AWS using CloudFormation.
 
+> **Windows Users:** Use the `DEPLOYMENT-GUIDE-WINDOWS.md` file and the `.bat` scripts (`deploy-fixed.bat` and `cleanup-fixed.bat`) instead of the shell scripts mentioned in this guide.
+
+## Available Deployment Methods
+
+### For Windows Users
+- **Deployment Script:** `deploy-fixed.bat`
+- **Cleanup Script:** `cleanup-fixed.bat`
+- **Guide:** `DEPLOYMENT-GUIDE-WINDOWS.md`
+
+### For Linux/macOS Users
+- **Deployment Script:** `deploy-fixed.sh`
+- **Cleanup Script:** `cleanup-fixed.sh`
+- **Guide:** This file (`deployment-guide.md`)
+
 ## Prerequisites
 
 1. An AWS account
@@ -75,10 +89,156 @@ If using Route 53:
 
 ### 5. Verify Deployment
 
-Once DNS propagation is complete (may take up to 48 hours, but often much faster):
+Once the CloudFormation stack is created:
 
-1. Visit https://aaryajha.com to verify the website is working
-2. Visit https://aaryajha.com/jupyter to access Jupyter Notebook (secure this with a password for production)
+1. You can immediately access the website using the public IP address:
+   - Go to the CloudFormation console and select your stack
+   - Go to the "Outputs" tab
+   - Find the "InstancePublicIP" value
+   - Visit `http://<InstancePublicIP>` in your browser
+
+2. Once DNS propagation is complete (may take up to 48 hours, but often much faster):
+   - Visit https://aaryajha.com to verify the website is working
+   - Visit https://aaryajha.com/jupyter to access Jupyter Notebook
+
+3. You can also access Jupyter Notebook directly via the IP address:
+   - Visit `http://<InstancePublicIP>/jupyter`
+
+## Troubleshooting
+
+### Checking Service Status
+
+After deployment, SSH into your instance to check service status:
+
+```bash
+ssh -i your-key.pem ec2-user@your-instance-ip
+```
+
+Check the status of all services:
+
+```bash
+sudo systemctl status nginx
+sudo systemctl status portfolio-backend
+sudo systemctl status jupyter
+```
+
+### Viewing Logs
+
+To diagnose service startup issues, check the logs:
+
+1. **CloudFormation initialization logs**:
+   ```bash
+   sudo cat /var/log/cloud-init-output.log
+   ```
+
+2. **User data script logs**:
+   ```bash
+   sudo cat /var/log/user-data.log
+   ```
+
+3. **Nginx logs**:
+   ```bash
+   sudo tail -n 100 /var/log/nginx/error.log
+   sudo cat /var/log/nginx/access.log
+   ```
+
+4. **Flask backend logs**:
+   ```bash
+   sudo journalctl -u portfolio-backend -n 100 --no-pager
+   ```
+
+5. **Jupyter Notebook logs**:
+   ```bash
+   sudo journalctl -u jupyter -n 100 --no-pager
+   ```
+
+6. **Service checker logs**:
+   ```bash
+   sudo cat /var/log/service-checker.log
+   ```
+
+### Common Issues
+
+1. **Services fail to start**:
+   - Check if paths in service files are correct:
+     ```bash
+     sudo cat /etc/systemd/system/portfolio-backend.service
+     sudo cat /etc/systemd/system/jupyter.service
+     ```
+   - Verify file permissions:
+     ```bash
+     ls -la /var/www/blog-webapp
+     sudo chown -R ec2-user:ec2-user /var/www/blog-webapp
+     ```
+   - Manually start services to see errors:
+     ```bash
+     sudo systemctl start nginx
+     sudo systemctl start portfolio-backend
+     sudo systemctl start jupyter
+     ```
+
+2. **Website not accessible**:
+   - Check if Nginx is running: `sudo systemctl status nginx`
+   - Verify Nginx configuration: `sudo nginx -t`
+   - Check if the frontend build exists:
+     ```bash
+     ls -la /var/www/blog-webapp/frontend/build
+     ```
+   - Verify DNS settings are correct
+   - Check security group settings in AWS console
+
+3. **Backend API not working**:
+   - Check if the Flask service is running: `sudo systemctl status portfolio-backend`
+   - Verify Python dependencies are installed:
+     ```bash
+     cd /var/www/blog-webapp/backend
+     pip3 list | grep Flask
+     ```
+   - Test the API manually:
+     ```bash
+     curl http://localhost:5000/api/status
+     ```
+
+4. **Jupyter Notebook not accessible**:
+   - Check if Jupyter service is running: `sudo systemctl status jupyter`
+   - Verify port 8888 is open in the security group
+   - Check Jupyter configuration:
+     ```bash
+     cat /home/ec2-user/.jupyter/jupyter_notebook_config.py
+     ```
+   - Test Jupyter directly:
+     ```bash
+     curl http://localhost:8888
+     ```
+
+### Restarting Services
+
+If you need to restart services after making changes:
+
+```bash
+sudo systemctl restart nginx
+sudo systemctl restart portfolio-backend
+sudo systemctl restart jupyter
+```
+
+### Checking AMI Information
+
+To verify the AMI information on your instance:
+
+```bash
+cat /etc/system-release
+```
+
+This should show "Amazon Linux release 2023" if you're using the correct AMI.
+
+### Fixing Syntax Errors in CloudFormation
+
+If you encounter syntax errors in the CloudFormation template's UserData script:
+
+1. Check for proper closing of heredoc markers (EOF)
+2. Ensure proper escaping of special characters
+3. Verify that all commands are properly terminated
+4. Check for balanced quotes and brackets
 
 ## Security Considerations
 
@@ -108,7 +268,7 @@ To update the website:
 
 2. Navigate to the repository and pull the latest changes:
    ```bash
-   cd /var/www/portfolio-webapp
+   cd /var/www/blog-webapp
    git pull
    ```
 
@@ -145,24 +305,6 @@ To update the website:
   # Jupyter logs
   sudo journalctl -u jupyter -f
   ```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Website not accessible**:
-   - Check if Nginx is running: `sudo systemctl status nginx`
-   - Verify DNS settings are correct
-   - Check security group settings in AWS console
-
-2. **Backend API not working**:
-   - Check if the Flask service is running: `sudo systemctl status portfolio-backend`
-   - Check logs for errors: `sudo journalctl -u portfolio-backend -f`
-
-3. **Jupyter Notebook not accessible**:
-   - Check if Jupyter service is running: `sudo systemctl status jupyter`
-   - Verify port 8888 is open in the security group
-   - Check logs: `sudo journalctl -u jupyter -f`
 
 ### SSL Certificate Renewal
 
