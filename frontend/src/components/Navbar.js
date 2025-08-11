@@ -39,10 +39,10 @@ const Navbar = () => {
     <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
       <div className="nav-container">
         <Link to="/" className="nav-logo" onClick={closeMenu}>
-          <div className="logo-icon">
+          {/* <div className="logo-icon">
             <Palette size={24} />
             <Sparkles size={20} className="logo-overlay" />
-          </div>
+          </div> */}
           <span className="logo-text">
             Stark's <span className="logo-accent">Blog</span>
           </span>
