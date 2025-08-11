@@ -1,13 +1,13 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Home from './pages/Home';
-import About from './pages/About';
-import Work from './pages/Work';
-import Blogs from './pages/Blogs';
-import BlogPost from './pages/BlogPost';
-import Ramblings from './pages/Ramblings';
-import Contact from './pages/Contact';
+import Navbar from './components/Navbar.jsx';
+import Home from './pages/Home.jsx';
+import About from './pages/About.jsx';
+import Work from './pages/Work.jsx';
+import Blogs from './pages/Blogs.jsx';
+import BlogPost from './pages/BlogPost.jsx';
+import Ramblings from './pages/Ramblings.jsx';
+import Contact from './pages/Contact.jsx';
 import './App.css';
 
 // const { registerFont, createCanvas } = require('canvas');

@@ -1,0 +1,285 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template for Aarya Jha portfolio website with Ubuntu AMI (Mumbai Region)'
+
+Parameters:
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: Must be the name of an existing EC2 KeyPair.
+  
+  SSHLocation:
+    Description: The IP address range that can be used to SSH to the EC2 instances
+    Type: String
+    Default: 0.0.0.0/0
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
+
+  DomainName:
+    Description: Domain name for the website
+    Type: String
+    Default: aaryajha.com
+
+  InstanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: t3.small
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t3.micro
+      - t3.small
+      - t3.medium
+    ConstraintDescription: Must be a valid EC2 instance type.
+
+Resources:
+  WebServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTP/HTTPS access via ports 80/443, SSH access, and Jupyter Notebook
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref SSHLocation
+        - IpProtocol: tcp
+          FromPort: 8888
+          ToPort: 8888
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 5000
+          ToPort: 5000
+          CidrIp: 0.0.0.0/0
+
+  WebServerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      SecurityGroups:
+        - !Ref WebServerSecurityGroup
+      KeyName: !Ref KeyName
+      ImageId: ami-03f4878755434977f  # Ubuntu 22.04 LTS (x86_64) in ap-south-1 region
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          
+          sudo -i
+
+          # Redirect output to log file and console
+          exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+          
+          echo "Starting portfolio deployment setup"
+          
+          # Create setup script
+          cat > /home/ubuntu/setup.sh << 'EOF'
+          #!/bin/bash
+          
+          # Update system
+          sudo apt-get update
+          sudo apt-get upgrade -y
+          
+          # Install required packages
+          sudo apt-get install -y \
+            apt-transport-https \
+            ca-certificates \
+            curl \
+            gnupg \
+            lsb-release \
+            git \
+            nginx \
+            python3-pip \
+            python3-venv \
+            nodejs \
+            npm \
+            certbot \
+            python3-certbot-nginx
+          
+          # Install Docker
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+          sudo systemctl start docker
+          sudo systemctl enable docker
+          sudo usermod -aG docker ubuntu
+          
+          # Install Docker Compose
+          sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+          
+          # Create application directory and clone repository
+          mkdir -p /opt/portfolio
+          cd /opt
+          
+          # Clone the repository
+          if git clone https://github.com/hawk-aj/blog-webapp.git portfolio; then
+            echo "Repository cloned successfully"
+            cd /opt/portfolio
+            
+            # Set proper permissions
+            sudo chown -R ubuntu:ubuntu /opt/portfolio
+            
+            # Build and start Docker containers
+            docker-compose build
+            docker-compose up -d
+            
+            echo "Application deployed successfully"
+          else
+            echo "ERROR: Failed to clone repository. Please check the repository URL and network connectivity."
+            exit 1
+          fi
+          
+          # Configure Nginx as reverse proxy
+          sudo cat > /etc/nginx/conf.d/portfolio.conf << 'EOFNGINX'
+          server {
+              listen 80;
+              server_name ${DomainName} www.${DomainName};
+              
+              location / {
+                  proxy_pass http://localhost:80;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection 'upgrade';
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+                  proxy_cache_bypass $http_upgrade;
+              }
+              
+              location /jupyter {
+                  proxy_pass http://localhost:8888;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection 'upgrade';
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+              }
+          }
+          EOFNGINX
+          
+          # Start and enable Nginx
+          sudo systemctl start nginx
+          sudo systemctl enable nginx
+          
+          # Install SSL certificate if domain is configured
+          if [ "${DomainName}" != "aaryajha.com" ] && [ -n "${DomainName}" ]; then
+            echo "Attempting to obtain SSL certificate for ${DomainName}..."
+            sudo certbot --nginx -d ${DomainName} -d www.${DomainName} --non-interactive --agree-tos --email admin@${DomainName} --redirect || echo "SSL certificate installation failed - DNS may not be configured yet"
+          fi
+          
+          echo "Portfolio deployment completed successfully!"
+          EOF
+          
+          # Make setup script executable
+          chmod +x /home/ubuntu/setup.sh
+          
+          # Create a service checker script
+          cat > /home/ubuntu/service-checker.sh << 'EOF'
+          #!/bin/bash
+          
+          # Check if Docker containers are running
+          check_docker() {
+            if ! docker ps | grep -q portfolio-frontend; then
+              echo "$(date): Frontend container not running, restarting..." >> /var/log/service-checker.log
+              cd /opt/portfolio && docker-compose up -d
+            fi
+            
+            if ! docker ps | grep -q portfolio-backend; then
+              echo "$(date): Backend container not running, restarting..." >> /var/log/service-checker.log
+              cd /opt/portfolio && docker-compose up -d
+            fi
+            
+            if ! docker ps | grep -q portfolio-jupyter; then
+              echo "$(date): Jupyter container not running, restarting..." >> /var/log/service-checker.log
+              cd /opt/portfolio && docker-compose up -d
+            fi
+          }
+          
+          # Check if Nginx is running
+          check_nginx() {
+            if ! systemctl is-active --quiet nginx; then
+              echo "$(date): Nginx not running, restarting..." >> /var/log/service-checker.log
+              systemctl start nginx
+            fi
+          }
+          
+          # Run checks
+          check_docker
+          check_nginx
+          EOF
+          
+          # Make service checker executable
+          chmod +x /home/ubuntu/service-checker.sh
+          
+          # Add to crontab to run every 5 minutes
+          (crontab -l 2>/dev/null; echo "*/5 * * * * /home/ubuntu/service-checker.sh") | crontab -
+          
+          # Add setup script to .bashrc for first login
+          echo "# Run setup script on first login" >> /home/ubuntu/.bashrc
+          echo "if [ ! -f /home/ubuntu/.setup_complete ]; then" >> /home/ubuntu/.bashrc
+          echo "  echo 'Running first-time setup...'" >> /home/ubuntu/.bashrc
+          echo "  /home/ubuntu/setup.sh" >> /home/ubuntu/.bashrc
+          echo "  touch /home/ubuntu/.setup_complete" >> /home/ubuntu/.bashrc
+          echo "  echo 'Setup complete!'" >> /home/ubuntu/.bashrc
+          echo "fi" >> /home/ubuntu/.bashrc
+          
+          # Set proper ownership
+          chown -R ubuntu:ubuntu /home/ubuntu/setup.sh
+          chown -R ubuntu:ubuntu /home/ubuntu/service-checker.sh
+          
+          echo "Initial setup complete. Full deployment will run on first login."
+
+  WebServerEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      InstanceId: !Ref WebServerInstance
+
+Outputs:
+  WebsiteURL:
+    Description: URL for the website
+    Value: !Sub http://${DomainName}
+  
+  WebsiteSecureURL:
+    Description: Secure URL for the website
+    Value: !Sub https://${DomainName}
+  
+  DirectAccessURL:
+    Description: Direct access URL using public IP
+    Value: !Sub http://${WebServerEIP}
+  
+  JupyterURL:
+    Description: URL for Jupyter Notebook via domain
+    Value: !Sub https://${DomainName}/jupyter
+  
+  JupyterDirectURL:
+    Description: URL for Jupyter Notebook via IP
+    Value: !Sub http://${WebServerEIP}:8888
+  
+  InstancePublicIP:
+    Description: Public IP address of the EC2 instance
+    Value: !Ref WebServerEIP
+  
+  InstanceId:
+    Description: ID of the EC2 instance
+    Value: !Ref WebServerInstance
+  
+  SSHCommand:
+    Description: Command to SSH into the instance
+    Value: !Sub "ssh -i ${KeyName}.pem ubuntu@${WebServerEIP}"
+  
+  SetupInstructions:
+    Description: Instructions for completing setup
+    Value: "The setup script will run automatically on first login. SSH into the instance and wait for the setup to complete."

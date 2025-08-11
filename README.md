@@ -1,210 +1,259 @@
-# Aarya Jha Portfolio Website - AWS Deployment
+# Aarya Jha Portfolio Website
 
-This repository contains the CloudFormation template and deployment scripts for deploying Aarya Jha's portfolio website on AWS EC2.
+This repository contains Aarya Jha's portfolio website with a React frontend, Flask backend, and Jupyter Notebook server, all containerized with Docker.
 
-## 🚀 Quick Start
+## 🚀 Project Overview
 
-### Windows Users
-```cmd
-deploy-fixed.bat your-key-pair-name
-```
+The application consists of three main services:
 
-### Linux/macOS Users
+1. **Frontend** - React application with Vite, served by Nginx
+2. **Backend** - Flask API server providing portfolio data
+3. **Jupyter** - Jupyter Notebook server for data science work
+
+## 📋 Prerequisites
+
+### Local Development
+- Docker and Docker Compose
+- Node.js (for local frontend development)
+- Git
+
+### AWS Deployment
+- AWS CLI configured
+- Valid AWS account with EC2 permissions
+- EC2 Key Pair created in your target region
+
+## 🐳 Docker Deployment (Recommended)
+
+### Quick Start
 ```bash
-./deploy-fixed.sh your-key-pair-name
+# Build and start all services
+docker-compose up -d --build
+
+# View running containers
+docker-compose ps
+
+# View logs
+docker-compose logs -f
+
+# Stop all services
+docker-compose down
 ```
 
-## 📁 File Structure
+### Access URLs (Local Development)
+- **Website**: http://localhost
+- **API**: http://localhost:5000/api
+- **Jupyter Notebook**: http://localhost:8888
 
-### Core Files
-- `cloudformation-fixed.yaml` - **Fixed CloudFormation template (use this one!)**
-- `cloudformation.yaml` - Original template (has issues, don't use)
+## 🔧 Local Development (Without Docker)
 
-### Windows Deployment
-- `deploy-fixed.bat` - Windows deployment script
-- `cleanup-fixed.bat` - Windows cleanup script
-- `DEPLOYMENT-GUIDE-WINDOWS.md` - Complete Windows deployment guide
+### Frontend (React + Vite)
+```bash
+cd frontend
+npm install
+npm run dev
+```
+The frontend will be available at http://localhost:3000
 
-### Linux/macOS Deployment
-- `deploy-fixed.sh` - Linux/macOS deployment script
-- `cleanup-fixed.sh` - Linux/macOS cleanup script
-- `deployment-guide.md` - Complete Linux/macOS deployment guide
+### Backend (Flask)
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+flask run
+```
+The backend will be available at http://localhost:5000
 
-### Documentation
-- `README.md` - This file
-- `TROUBLESHOOTING.md` - Comprehensive troubleshooting guide
-- `nginx.conf` - Nginx configuration reference
-- `nginx-ip-access.conf` - IP-based access configuration
+## 📁 Project Structure
 
-### Application Files
-- `backend/` - Flask backend application
-  - `app.py` - Main Flask application with your portfolio data
-  - `requirements.txt` - Python dependencies
-- `frontend/` - React frontend application
-  - `package.json` - Node.js dependencies
-  - `src/` - React source code
+```
+portfolio-webapp/
+├── backend/
+│   ├── app.py              # Flask application
+│   ├── requirements.txt    # Python dependencies
+│   └── Dockerfile          # Backend container config
+├── frontend/
+│   ├── src/                # React source code
+│   ├── public/             # Static assets
+│   ├── dist/               # Built React app (generated)
+│   ├── package.json        # Node.js dependencies
+│   ├── vite.config.js      # Vite configuration
+│   ├── nginx.conf          # Nginx configuration
+│   └── Dockerfile          # Frontend container config
+├── notebooks/              # Jupyter notebooks directory
+├── docker-compose.yml      # Multi-container configuration
+├── cloudformation-ubuntu.yaml # AWS deployment template for Ubuntu
+└── ubuntu-deployment-guide.md # Ubuntu deployment guide
+```
 
-## 🔧 What's Fixed
+## 🌟 Features
 
-The `cloudformation-fixed.yaml` template addresses all the cloud-init failures from the original template:
+### Frontend
+- Modern React application built with Vite
+- Responsive design with CSS
+- Framer Motion animations
+- Lucide React icons
+- React Router for navigation
 
-### Issues Fixed:
-1. ✅ **Script Syntax Errors** - Fixed EOF markers and shell script formatting
-2. ✅ **Error Handling** - Added comprehensive error handling that continues execution
-3. ✅ **Service Management** - Improved systemd service configurations
-4. ✅ **Node.js Installation** - Reliable installation method with fallbacks
-5. ✅ **Nginx Configuration** - Corrected proxy settings and security headers
-6. ✅ **Application Integration** - Includes your actual Flask and React code
-7. ✅ **Monitoring** - Service monitoring and auto-restart capabilities
-8. ✅ **Logging** - Enhanced logging for troubleshooting
+### Backend
+- Flask API server
+- RESTful endpoints for portfolio data
+- JSON responses for frontend consumption
 
-### New Features:
-- 🔄 **Automatic Service Recovery** - Services restart automatically if they fail
-- 📊 **Service Monitoring** - Built-in monitoring script runs every 5 minutes
-- 🛡️ **Security Headers** - Proper security headers in Nginx
-- 📝 **Comprehensive Logging** - All operations logged for troubleshooting
-- 🔒 **SSL Support** - Automatic SSL certificate setup with certbot
-- 💾 **Fallback Mechanisms** - If React build fails, serves a basic HTML page
+### Jupyter Notebook
+- Interactive Python environment
+- Pre-configured for data science work
+- No password required (can be changed for production)
 
-## 🌐 What Gets Deployed
+## 🔍 API Endpoints
 
-After successful deployment, you'll have:
-
-### 1. Main Website (`http://your-ip/`)
-- React frontend with your portfolio
-- Responsive design
-- API integration with Flask backend
-
-### 2. Backend API (`http://your-ip/api/`)
-- `/api/profile` - Your profile information
+- `/api/profile` - Profile information
 - `/api/experience` - Work experience data
 - `/api/blogs` - Blog posts
 - `/api/ramblings` - Personal thoughts and observations
 
-### 3. Jupyter Notebook (`http://your-ip/jupyter`)
-- Interactive Python environment
-- Pre-configured for easy access
-- No password required (can be changed for production)
+## ☁️ AWS Deployment
 
-## 📋 Prerequisites
+### Ubuntu EC2 Deployment
+Refer to `ubuntu-deployment-guide.md` for detailed instructions on deploying to an Ubuntu EC2 instance.
 
-1. **AWS Account** with appropriate permissions
-2. **AWS CLI** installed and configured (`aws configure`)
-3. **EC2 Key Pair** created in your target region
-4. **Domain name** (optional, defaults to aaryajha.com)
+### Key Steps:
+1. Launch an Ubuntu EC2 instance
+2. Install Docker and Docker Compose
+3. Clone this repository
+4. Run `docker-compose up -d --build`
+5. Configure Nginx for SSL (optional)
 
-## 🚀 Deployment Instructions
+## 🔧 Configuration
 
-### Option 1: Automated Scripts (Recommended)
+### Environment Variables
+The application supports the following environment variables:
 
-#### Windows:
-```cmd
-cd portfolio-webapp
-deploy-fixed.bat your-key-pair-name
-```
+#### Backend (Flask)
+- `FLASK_ENV`: Set to `production` for production deployment
+- `FLASK_APP`: Entry point file (default: `app.py`)
 
-#### Linux/macOS:
+#### Frontend (Nginx)
+- Configured via `nginx.conf` file
+- Proxy settings for API calls to backend
+
+#### Jupyter
+- `JUPYTER_ENABLE_LAB`: Enable JupyterLab interface
+- `JUPYTER_TOKEN`: Authentication token (empty for no auth)
+
+### Port Configuration
+- **Frontend**: Port 80 (HTTP)
+- **Backend**: Port 5000 (API)
+- **Jupyter**: Port 8888 (Notebook interface)
+
+## 🔍 Monitoring and Troubleshooting
+
+### Check Container Status
 ```bash
-cd portfolio-webapp
-./deploy-fixed.sh your-key-pair-name
+docker-compose ps
 ```
 
-### Option 2: AWS Console
-1. Upload `cloudformation-fixed.yaml` to CloudFormation
-2. Set parameters (KeyName, DomainName, InstanceType)
-3. Create stack and wait for completion
-
-### Option 3: AWS CLI
+### View Logs
 ```bash
-aws cloudformation create-stack \
-  --stack-name portfolio-website-fixed \
-  --template-body file://cloudformation-fixed.yaml \
-  --parameters ParameterKey=KeyName,ParameterValue=your-key-pair \
-  --capabilities CAPABILITY_IAM \
-  --region us-east-1
+# All services
+docker-compose logs -f
+
+# Specific service
+docker-compose logs frontend
+docker-compose logs backend
+docker-compose logs jupyter
 ```
 
-## 🔍 Monitoring & Troubleshooting
-
-### Check Deployment Status
-- **AWS Console**: CloudFormation → Stacks → portfolio-website-fixed
-- **Command Line**: `aws cloudformation describe-stacks --stack-name portfolio-website-fixed`
-
-### Access Logs
+### Restart Services
 ```bash
-# SSH into the instance
-ssh -i your-key.pem ec2-user@your-instance-ip
-
-# Check deployment logs
-sudo tail -f /var/log/user-data.log
-
-# Check service status
-sudo systemctl status nginx portfolio-backend jupyter
-
-# Check service logs
-sudo journalctl -u portfolio-backend -f
+docker-compose restart
 ```
 
-### Common Issues
-- **Cloud-init failures**: Check `/var/log/user-data.log`
-- **Service startup issues**: Check `systemctl status <service-name>`
-- **Website not accessible**: Verify security groups and DNS settings
-- **API not working**: Check Flask backend service status
+## 🛠️ Development Workflow
 
-See `TROUBLESHOOTING.md` for detailed solutions.
+### Making Changes to Backend
+1. Modify files in `backend/` directory
+2. Rebuild and restart:
+   ```bash
+   docker-compose up -d --build backend
+   ```
 
-## 🧹 Cleanup
+### Making Changes to Frontend
+1. Modify files in `frontend/src/` directory
+2. Rebuild and restart:
+   ```bash
+   docker-compose up -d --build frontend
+   ```
 
-### Windows:
-```cmd
-cleanup-fixed.bat
-```
+### Adding New Dependencies
 
-### Linux/macOS:
+#### Backend (Python)
+1. Add package to `backend/requirements.txt`
+2. Rebuild container:
+   ```bash
+   docker-compose up -d --build backend
+   ```
+
+#### Frontend (Node.js)
+1. Add package to `frontend/package.json` or use npm:
+   ```bash
+   cd frontend
+   npm install package-name
+   cd ..
+   docker-compose up -d --build frontend
+   ```
+
+## 🔒 Security Considerations
+
+### Local Development
+- Jupyter runs without authentication (development only)
+- All services accessible on localhost
+
+### Production Deployment
+- Configure SSL certificates for HTTPS
+- Set up proper authentication for Jupyter
+- Use environment variables for sensitive information
+
+## 🚨 Common Issues and Solutions
+
+### Issue: Docker containers won't start
+**Solution**: Check Docker is running and has sufficient resources allocated.
+
+### Issue: Port conflicts
+**Solution**: Ensure ports 80, 5000, and 8888 are not in use by other applications.
+
+### Issue: Frontend build fails
+**Solution**: 
 ```bash
-./cleanup-fixed.sh
+cd frontend
+npm install
+npm run build
+cd ..
+docker-compose up -d --build frontend
 ```
 
-This will delete all AWS resources and stop billing.
+## 📝 Logs and Debugging
 
-## 💰 Cost Estimate
+### Log Locations
+- Container logs: `docker-compose logs`
+- Individual service logs: `docker-compose logs [service-name]`
+- Nginx logs: Inside the frontend container at `/var/log/nginx/`
 
-- **t3.micro instance**: ~$8-10/month (Free Tier eligible)
-- **Elastic IP**: Free when attached to running instance
-- **Data transfer**: Minimal for personal portfolio
-- **Total**: ~$8-10/month (or free with AWS Free Tier)
+## 📞 Support
 
-## 🔒 Security Features
+For issues related to:
+- **Docker**: Check Docker documentation
+- **React/Vite**: Check Vite documentation
+- **Flask**: Check Flask documentation
 
-- **Restricted SSH access** (configurable IP ranges)
-- **Security headers** in Nginx configuration
-- **Automatic SSL certificates** with Let's Encrypt
-- **Service isolation** with proper user permissions
-- **Firewall rules** via AWS Security Groups
+## 🎯 Next Steps
 
-## 📚 Documentation
-
-- **Windows Users**: Read `DEPLOYMENT-GUIDE-WINDOWS.md`
-- **Linux/macOS Users**: Read `deployment-guide.md`
-- **Troubleshooting**: Read `TROUBLESHOOTING.md`
-- **Application Details**: Check `backend/app.py` and `frontend/src/`
-
-## 🤝 Support
-
-If you encounter issues:
-
-1. Check the appropriate deployment guide for your OS
-2. Review the troubleshooting guide
-3. Check AWS CloudFormation events in the console
-4. Examine the user-data logs on the EC2 instance
-
-## 📝 Notes
-
-- The template includes comprehensive error handling and fallback mechanisms
-- Most issues should be automatically resolved or clearly logged
-- The deployment is production-ready with monitoring and auto-recovery
-- All your actual portfolio data is included in the Flask backend
+1. **Custom Domain**: Configure your domain to point to your deployment
+2. **Database**: Add persistent database for dynamic content
+3. **CI/CD**: Set up automated deployment pipeline
+4. **Monitoring**: Add application monitoring and alerting
+5. **Scaling**: Consider load balancers and auto-scaling groups
 
 ---
 
-**Ready to deploy?** Choose your platform and run the deployment script! 🚀
+**Note**: This deployment uses Docker for containerization, making it easy to develop locally and deploy consistently to any environment.

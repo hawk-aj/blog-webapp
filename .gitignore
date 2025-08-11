@@ -1,6 +1,33 @@
+# Frontend
 /frontend/node_modules/
-/frontend/public/
+/frontend/dist/
+/frontend/.vite/
+/frontend/build/
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+/frontend/.env
+/frontend/.env.local
+/frontend/.env.development.local
+/frontend/.env.test.local
+/frontend/.env.production.local
 
-/backend/venv
+# Backend
+/backend/venv/
+/backend/__pycache__/
+/backend/*.py[cod]
+/backend/*$py.class
+/backend/.env
+/backend/.env.local
+
+# Deployment
 aarya.pem
 cloudformation.yaml
+outputs.json
+
+# OS specific
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
