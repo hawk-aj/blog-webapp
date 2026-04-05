@@ -1,0 +1,32 @@
+# Personal / machine-specific — never commit
+update-deployment.py
+Aarya_Jha_Resume.pdf
+portfolio-webapp/video-demo.mp4
+.claude/
+
+# AWS / secrets
+*.pem
+*.key
+*.env
+.env*
+
+# Build artefacts
+portfolio-webapp/frontend/dist/
+portfolio-webapp/frontend/node_modules/
+portfolio-webapp/backend/venv/
+portfolio-webapp/backend/__pycache__/
+**/__pycache__/
+*.pyc
+
+# Jupyter
+portfolio-webapp/notebooks/.ipynb_checkpoints/
+/tmp/
+
+# Admin credentials — never commit
+portfolio-webapp/backend/data/auth.json
+
+# OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

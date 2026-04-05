@@ -1,0 +1,222 @@
+/* ── Reset ─────────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ── Design tokens ─────────────────────────────────────────────────────────── */
+:root {
+  /* Palette */
+  --espresso: #472d30;
+  --maroon:   #723d46;
+  --coral:    #e26d5c;
+  --cream:    #ffe1a8;
+  --sage:     #c9cba3;
+
+  /* Backgrounds */
+  --bg-primary:    #723d46;
+  --bg-surface:    rgba(255, 255, 255, 0.07);
+  --bg-elevated:   rgba(0, 0, 0, 0.20);
+  --bg-deep:       #472d30;
+  --border:        rgba(201, 203, 163, 0.20);
+  --border-subtle: rgba(201, 203, 163, 0.10);
+
+  /* Text */
+  --text-primary:   #ffe1a8;
+  --text-secondary: #c9cba3;
+  --text-muted:     rgba(201, 203, 163, 0.60);
+
+  /* Accents */
+  --accent:       #e26d5c;
+  --accent-hover: #d4574a;
+  --accent-deep:  #472d30;
+
+  /* Shadows */
+  --shadow-sm:     0 1px 4px rgba(71, 45, 48, 0.50);
+  --shadow-md:     0 4px 16px rgba(71, 45, 48, 0.60);
+  --shadow-lg:     0 8px 32px rgba(71, 45, 48, 0.70);
+  --shadow-accent: 0 4px 16px rgba(226, 109, 92, 0.35);
+
+  /* Typography */
+  --font-primary: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  --transition: 0.2s ease;
+
+  /* Aliases used by JSX inline styles */
+  --primary-color:    #e26d5c;
+  --light-bg:         #472d30;
+  --border-color:     rgba(201, 203, 163, 0.20);
+  --soft-cream:       #ffe1a8;
+  --dark-bg:          #472d30;
+  --pastel-green:     #c9cba3;
+  --deep-red:         #e26d5c;
+  --gradient-primary: #e26d5c;
+  --gradient-hero:    #e26d5c;
+}
+
+/* ── Base ───────────────────────────────────────────────────────────────────── */
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-primary);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 6px; }
+::-webkit-scrollbar-track  { background: var(--maroon); }
+::-webkit-scrollbar-thumb  { background: rgba(201,203,163,0.30); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--coral); }
+
+/* ── Typography ─────────────────────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 700; }
+h2 { font-size: clamp(1.5rem, 3vw, 2.25rem); }
+h3 { font-size: 1.5rem; }
+h4 { font-size: 1.25rem; }
+
+p {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  font-weight: 400;
+  line-height: 1.7;
+}
+
+a {
+  color: var(--coral);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+a:hover { color: var(--accent-hover); }
+
+/* ── Layout utilities ───────────────────────────────────────────────────────── */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.section { padding: 5rem 0; }
+
+.text-center { text-align: center; }
+.text-muted  { color: var(--text-muted); }
+.text-gradient { color: var(--cream); }
+
+/* ── Buttons ────────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  font-family: var(--font-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--coral);
+  color: var(--cream);
+  border-color: var(--coral);
+}
+.btn-primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  color: var(--cream);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--cream);
+  border-color: var(--cream);
+}
+.btn-outline:hover {
+  border-color: var(--coral);
+  color: var(--coral);
+  background: transparent;
+}
+
+/* ── Cards ──────────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+.card:hover {
+  border-color: var(--coral);
+  box-shadow: var(--shadow-md);
+}
+
+/* ── Grid ───────────────────────────────────────────────────────────────────── */
+.grid   { display: grid; gap: 1.5rem; }
+.grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.grid-3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+
+/* ── Animations ─────────────────────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.fade-in-up { animation: fadeInUp 0.5s ease-out; }
+.fade-in    { animation: fadeIn 0.5s ease-out; }
+
+/* ── Loading spinner ────────────────────────────────────────────────────────── */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(201, 203, 163, 0.20);
+  border-top-color: var(--coral);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .container { padding: 0 1rem; }
+  .section   { padding: 3rem 0; }
+  .grid      { gap: 1rem; }
+}
+@media (max-width: 480px) {
+  .btn { padding: 0.5rem 1rem; font-size: 0.85rem; }
+}
