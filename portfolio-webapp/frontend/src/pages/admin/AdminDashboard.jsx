@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import './AdminDashboard.css';
 
-// ── Palette ───────────────────────────────────────────────────────────────────
+// ── Palette (dynamic / active-state colours only) ─────────────────────────────
 const P = {
   espresso:      '#472d30',
   maroon:        '#723d46',
@@ -16,51 +17,10 @@ const P = {
   textSecondary: '#c9cba3',
   textMuted:     'rgba(201,203,163,0.60)',
   shadowSm:      '0 1px 4px rgba(71,45,48,0.50)',
-  shadowMd:      '0 4px 16px rgba(71,45,48,0.60)',
 };
 
-// ── Styles ────────────────────────────────────────────────────────────────────
+// ── Shared inline styles (colours / component-level, not layout) ──────────────
 const c = {
-  layout:  { display: 'flex', minHeight: '100vh', fontFamily: 'Inter, sans-serif', background: P.maroon },
-  sidebar: { width: '220px', background: P.espresso, display: 'flex', flexDirection: 'column', flexShrink: 0 },
-  main:    { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto' },
-
-  sideHeader: { padding: '1.5rem 1.25rem 1rem', borderBottom: `1px solid ${P.borderSubtle}` },
-  sideTitle:  { color: P.cream, fontWeight: '700', fontSize: '1rem', margin: 0 },
-  sideSub:    { color: P.textMuted, fontSize: '0.75rem', margin: '0.25rem 0 0', fontFamily: 'JetBrains Mono, monospace' },
-  nav:        { flex: 1, padding: '0.75rem 0' },
-
-  navBtn: {
-    display: 'block', width: '100%', textAlign: 'left',
-    padding: '0.7rem 1.25rem', background: 'none', border: 'none',
-    color: 'rgba(255,225,168,0.55)', cursor: 'pointer',
-    fontSize: '0.875rem', fontFamily: 'Inter, sans-serif', transition: 'all 0.15s',
-  },
-  navBtnActive: {
-    color: P.coral, fontWeight: '600',
-    borderLeft: `3px solid ${P.coral}`,
-    paddingLeft: 'calc(1.25rem - 3px)',
-    background: 'rgba(226,109,92,0.10)',
-  },
-  navBtnHover: { color: P.cream, background: 'rgba(255,255,255,0.06)' },
-
-  logoutBtn: {
-    margin: '1rem', padding: '0.6rem',
-    background: 'rgba(255,255,255,0.04)',
-    border: `1px solid ${P.borderSubtle}`,
-    borderRadius: '8px', color: P.textMuted,
-    cursor: 'pointer', fontSize: '0.8rem', fontFamily: 'Inter, sans-serif',
-  },
-
-  topbar: {
-    background: P.espresso, padding: '1rem 2rem',
-    borderBottom: `1px solid ${P.borderSubtle}`,
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-  },
-  topTitle: { fontWeight: '700', color: P.cream, fontSize: '1.1rem' },
-
-  content: { padding: '2rem', flex: 1 },
-
   card: {
     background: P.bgSurface, borderRadius: '12px', padding: '1.5rem',
     border: `1px solid ${P.border}`, boxShadow: P.shadowSm, marginBottom: '1.5rem',
@@ -75,7 +35,7 @@ const c = {
   input: {
     width: '100%', padding: '0.6rem 0.85rem',
     border: `1.5px solid ${P.border}`, borderRadius: '8px',
-    fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box',
+    fontSize: '1rem', outline: 'none', boxSizing: 'border-box',
     fontFamily: 'Inter, sans-serif', background: P.bgElevated,
     color: P.cream, transition: 'border-color 0.2s',
   },
@@ -83,7 +43,7 @@ const c = {
   textarea: {
     width: '100%', padding: '0.6rem 0.85rem',
     border: `1.5px solid ${P.border}`, borderRadius: '8px',
-    fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box',
+    fontSize: '1rem', outline: 'none', boxSizing: 'border-box',
     fontFamily: 'Inter, sans-serif', background: P.bgElevated,
     color: P.cream, resize: 'vertical', minHeight: '100px',
   },
@@ -106,7 +66,6 @@ const c = {
     display: 'inline-block', padding: '0.2rem 0.6rem', borderRadius: '20px',
     fontSize: '0.75rem', fontWeight: '500',
     background: 'rgba(226,109,92,0.15)', color: P.sage,
-    border: 'rgba(226,109,92,0.30)',
     marginRight: '0.35rem', marginBottom: '0.2rem',
   },
   tokenBox: {
@@ -116,14 +75,27 @@ const c = {
     fontSize: '0.85rem', wordBreak: 'break-all', marginBottom: '0.75rem',
     border: `1px solid ${P.border}`,
   },
+
+  navBtn: {
+    display: 'block', width: '100%', textAlign: 'left',
+    padding: '0.7rem 1.25rem', background: 'none', border: 'none',
+    color: 'rgba(255,225,168,0.55)', cursor: 'pointer',
+    fontSize: '0.875rem', fontFamily: 'Inter, sans-serif', transition: 'all 0.15s',
+  },
+  navBtnActive: {
+    color: P.coral, fontWeight: '600',
+    borderLeft: `3px solid ${P.coral}`,
+    paddingLeft: 'calc(1.25rem - 3px)',
+    background: 'rgba(226,109,92,0.10)',
+  },
 };
 
 const TABS = [
-  { id: 'overview',   label: 'Overview'    },
-  { id: 'blogs',      label: 'Blog Posts'  },
-  { id: 'profile',    label: 'Profile'     },
-  { id: 'experience', label: 'Experience'  },
-  { id: 'ramblings',  label: 'Ramblings'   },
+  { id: 'overview',   label: 'Overview'   },
+  { id: 'blogs',      label: 'Blog Posts' },
+  { id: 'profile',    label: 'Profile'    },
+  { id: 'experience', label: 'Experience' },
+  { id: 'ramblings',  label: 'Ramblings'  },
 ];
 
 // ── API hook ──────────────────────────────────────────────────────────────────
@@ -271,35 +243,37 @@ function BlogsPanel({ api }) {
             <textarea style={{ ...c.textarea, minHeight: '180px' }}
               value={form.content || ''} onChange={e => setForm({ ...form, content: e.target.value })} />
           </div>
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             <button style={{ ...c.btn, ...c.btnPrimary }} onClick={save}>Save</button>
             <button style={{ ...c.btn, ...c.btnGhost }} onClick={cancel}>Cancel</button>
           </div>
         </div>
       ) : (
         <div style={c.card}>
-          <table style={c.table}>
-            <thead>
-              <tr>
-                <th style={c.th}>Title</th><th style={c.th}>Date</th>
-                <th style={c.th}>Tags</th><th style={c.th}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {blogs.map(b => (
-                <tr key={b.id}>
-                  <td style={c.td}><strong>{b.title}</strong></td>
-                  <td style={{ ...c.td, fontFamily: 'JetBrains Mono, monospace', fontSize: '0.8rem', color: P.textSecondary }}>{b.date}</td>
-                  <td style={c.td}>{(b.tags || []).map(t => <span style={c.badge} key={t}>{t}</span>)}</td>
-                  <td style={{ ...c.td, whiteSpace: 'nowrap' }}>
-                    <button style={{ ...c.btn, ...c.btnGhost, marginRight: '0.5rem' }} onClick={() => openEdit(b)}>Edit</button>
-                    <button style={{ ...c.btn, ...c.btnDanger }} onClick={() => del(b.id)}>Delete</button>
-                  </td>
+          <div className="admin-table-wrap">
+            <table style={c.table}>
+              <thead>
+                <tr>
+                  <th style={c.th}>Title</th><th style={c.th}>Date</th>
+                  <th style={c.th}>Tags</th><th style={c.th}></th>
                 </tr>
-              ))}
-              {!blogs.length && <tr><td colSpan={4} style={{ ...c.td, color: P.textMuted, textAlign: 'center' }}>No posts yet.</td></tr>}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {blogs.map(b => (
+                  <tr key={b.id}>
+                    <td style={c.td}><strong>{b.title}</strong></td>
+                    <td style={{ ...c.td, fontFamily: 'JetBrains Mono, monospace', fontSize: '0.8rem', color: P.textSecondary, whiteSpace: 'nowrap' }}>{b.date}</td>
+                    <td style={c.td}>{(b.tags || []).map(t => <span style={c.badge} key={t}>{t}</span>)}</td>
+                    <td style={{ ...c.td, whiteSpace: 'nowrap' }}>
+                      <button style={{ ...c.btn, ...c.btnGhost, marginRight: '0.5rem' }} onClick={() => openEdit(b)}>Edit</button>
+                      <button style={{ ...c.btn, ...c.btnDanger }} onClick={() => del(b.id)}>Delete</button>
+                    </td>
+                  </tr>
+                ))}
+                {!blogs.length && <tr><td colSpan={4} style={{ ...c.td, color: P.textMuted, textAlign: 'center' }}>No posts yet.</td></tr>}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </>
@@ -416,7 +390,7 @@ function ExperiencePanel({ api }) {
             <textarea style={{ ...c.textarea, minHeight: '120px' }}
               value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
           </div>
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             <button style={{ ...c.btn, ...c.btnPrimary }} onClick={save}>Save</button>
             <button style={{ ...c.btn, ...c.btnGhost }} onClick={cancel}>Cancel</button>
           </div>
@@ -424,7 +398,7 @@ function ExperiencePanel({ api }) {
       ) : (
         items.map(item => (
           <div style={c.card} key={item.id}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem' }}>
               <div>
                 <strong style={{ color: P.cream }}>{item.position}</strong>
                 <span style={{ color: P.coral, margin: '0 0.4rem' }}>@</span>
@@ -433,7 +407,7 @@ function ExperiencePanel({ api }) {
                   {item.duration} &middot; {item.location}
                 </p>
               </div>
-              <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0, marginLeft: '1rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
                 <button style={{ ...c.btn, ...c.btnGhost }} onClick={() => openEdit(item)}>Edit</button>
                 <button style={{ ...c.btn, ...c.btnDanger }} onClick={() => del(item.id)}>Delete</button>
               </div>
@@ -505,35 +479,37 @@ function RamblingsPanel({ api }) {
             <textarea style={{ ...c.textarea, minHeight: '140px' }}
               value={form.content || ''} onChange={e => setForm({ ...form, content: e.target.value })} />
           </div>
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             <button style={{ ...c.btn, ...c.btnPrimary }} onClick={save}>Save</button>
             <button style={{ ...c.btn, ...c.btnGhost }} onClick={cancel}>Cancel</button>
           </div>
         </div>
       ) : (
         <div style={c.card}>
-          <table style={c.table}>
-            <thead>
-              <tr>
-                <th style={c.th}>Title</th><th style={c.th}>Date</th>
-                <th style={c.th}>Mood</th><th style={c.th}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map(r => (
-                <tr key={r.id}>
-                  <td style={c.td}><strong>{r.title}</strong></td>
-                  <td style={{ ...c.td, fontFamily: 'JetBrains Mono, monospace', fontSize: '0.8rem', color: P.textSecondary }}>{r.date}</td>
-                  <td style={c.td}><span style={c.badge}>{r.mood}</span></td>
-                  <td style={{ ...c.td, whiteSpace: 'nowrap' }}>
-                    <button style={{ ...c.btn, ...c.btnGhost, marginRight: '0.5rem' }} onClick={() => openEdit(r)}>Edit</button>
-                    <button style={{ ...c.btn, ...c.btnDanger }} onClick={() => del(r.id)}>Delete</button>
-                  </td>
+          <div className="admin-table-wrap">
+            <table style={c.table}>
+              <thead>
+                <tr>
+                  <th style={c.th}>Title</th><th style={c.th}>Date</th>
+                  <th style={c.th}>Mood</th><th style={c.th}></th>
                 </tr>
-              ))}
-              {!items.length && <tr><td colSpan={4} style={{ ...c.td, color: P.textMuted, textAlign: 'center' }}>No ramblings yet.</td></tr>}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {items.map(r => (
+                  <tr key={r.id}>
+                    <td style={c.td}><strong>{r.title}</strong></td>
+                    <td style={{ ...c.td, fontFamily: 'JetBrains Mono, monospace', fontSize: '0.8rem', color: P.textSecondary, whiteSpace: 'nowrap' }}>{r.date}</td>
+                    <td style={c.td}><span style={c.badge}>{r.mood}</span></td>
+                    <td style={{ ...c.td, whiteSpace: 'nowrap' }}>
+                      <button style={{ ...c.btn, ...c.btnGhost, marginRight: '0.5rem' }} onClick={() => openEdit(r)}>Edit</button>
+                      <button style={{ ...c.btn, ...c.btnDanger }} onClick={() => del(r.id)}>Delete</button>
+                    </td>
+                  </tr>
+                ))}
+                {!items.length && <tr><td colSpan={4} style={{ ...c.td, color: P.textMuted, textAlign: 'center' }}>No ramblings yet.</td></tr>}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </>
@@ -543,9 +519,9 @@ function RamblingsPanel({ api }) {
 // ── Dashboard shell ───────────────────────────────────────────────────────────
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const [tab, setTab]     = useState('overview');
-  const [token, setToken] = useState('');
-  const [hovered, setHov] = useState('');
+  const [tab, setTab]         = useState('overview');
+  const [token, setToken]     = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const t = sessionStorage.getItem('admin_token');
@@ -557,34 +533,55 @@ export default function AdminDashboard() {
   const logout = () => { sessionStorage.removeItem('admin_token'); navigate('/admin'); };
   const label  = TABS.find(t => t.id === tab)?.label || '';
 
+  const switchTab = (id) => { setTab(id); setSidebarOpen(false); };
+
   return (
-    <div style={c.layout}>
-      <aside style={c.sidebar}>
-        <div style={c.sideHeader}>
-          <p style={c.sideTitle}>Admin</p>
-          <p style={c.sideSub}>aaryajha.com</p>
+    <div className="admin-layout">
+      {/* Mobile overlay */}
+      <div
+        className={`admin-overlay${sidebarOpen ? ' open' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      />
+
+      {/* Sidebar */}
+      <aside className={`admin-sidebar${sidebarOpen ? ' open' : ''}`}>
+        <div className="admin-side-header">
+          <p style={{ color: P.cream, fontWeight: '700', fontSize: '1rem', margin: 0 }}>Admin</p>
+          <p style={{ color: P.textMuted, fontSize: '0.75rem', margin: '0.25rem 0 0', fontFamily: 'JetBrains Mono, monospace' }}>aaryajha.com</p>
         </div>
-        <nav style={c.nav}>
+        <nav className="admin-nav">
           {TABS.map(t => (
-            <button key={t.id}
-              style={{ ...c.navBtn, ...(tab === t.id ? c.navBtnActive : {}), ...(hovered === t.id && tab !== t.id ? c.navBtnHover : {}) }}
-              onClick={() => setTab(t.id)}
-              onMouseEnter={() => setHov(t.id)}
-              onMouseLeave={() => setHov('')}
+            <button
+              key={t.id}
+              style={{ ...c.navBtn, ...(tab === t.id ? c.navBtnActive : {}) }}
+              onClick={() => switchTab(t.id)}
             >
               {t.label}
             </button>
           ))}
         </nav>
-        <button style={c.logoutBtn} onClick={logout}>Log out</button>
+        <button className="admin-logout" onClick={logout}>Log out</button>
       </aside>
 
-      <div style={c.main}>
-        <div style={c.topbar}>
-          <span style={c.topTitle}>{label}</span>
-          <span style={{ fontSize: '0.75rem', color: P.textMuted, fontFamily: 'JetBrains Mono, monospace' }}>session &middot; 1h</span>
+      {/* Main */}
+      <div className="admin-main">
+        <div className="admin-topbar">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <button
+              className="admin-hamburger"
+              onClick={() => setSidebarOpen(o => !o)}
+              aria-label="Toggle menu"
+            >
+              &#9776;
+            </button>
+            <span style={{ fontWeight: '700', color: P.cream, fontSize: '1.1rem' }}>{label}</span>
+          </div>
+          <span className="admin-topbar-meta" style={{ fontSize: '0.75rem', color: P.textMuted, fontFamily: 'JetBrains Mono, monospace' }}>
+            session &middot; 1h
+          </span>
         </div>
-        <div style={c.content}>
+
+        <div className="admin-content">
           {tab === 'overview'   && <OverviewPanel   api={api} />}
           {tab === 'blogs'      && <BlogsPanel      api={api} />}
           {tab === 'profile'    && <ProfilePanel    api={api} />}

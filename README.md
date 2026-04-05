@@ -7,17 +7,12 @@ Personal portfolio, blog, and data science workspace for Aarya Jha.
 | | URL |
 |---|---|
 | Portfolio | https://aaryajha.com |
-| JupyterLab | https://jupyter.aaryajha.com _(token required — see below)_ |
+| JupyterLab | https://jupyter.aaryajha.com |
 | API (profile) | https://aaryajha.com/api/profile |
 | API (blogs) | https://aaryajha.com/api/blogs |
 | API (experience) | https://aaryajha.com/api/experience |
 | API (ramblings) | https://aaryajha.com/api/ramblings |
 
-> **Jupyter token** — regenerated on every service restart. Retrieve it with:
-> ```bash
-> ssh -i ~/.configs/aarya-base-key-pair.pem ec2-user@3.6.40.8 \
->   "sudo journalctl -u portfolio | grep -oP 'token=\K[a-f0-9]+' | tail -1"
-> ```
 
 ## Project Structure
 
@@ -91,9 +86,9 @@ tar -czf /tmp/portfolio.tar.gz \
   .
 
 KEY="~/.configs/aarya-base-key-pair.pem"
-scp -i "$KEY" /tmp/portfolio.tar.gz ec2-user@3.6.40.8:/tmp/
+scp -i "$KEY" /tmp/portfolio.tar.gz ec2-user@$HOST:/tmp/
 
-ssh -i "$KEY" ec2-user@3.6.40.8 \
+ssh -i "$KEY" ec2-user@$HOST \
   "tar -xzf /tmp/portfolio.tar.gz -C ~/portfolio && sudo systemctl restart portfolio"
 ```
 
@@ -160,7 +155,7 @@ import os, sys, tarfile, subprocess, tempfile, argparse
 # ── Config ────────────────────────────────────────────────────────────────────
 LOCAL_SRC   = 'portfolio-webapp/'          # relative to this script
 KEY         = '../.configs/aarya-base-key-pair.pem'   # <-- EDIT THIS
-HOST        = 'ec2-user@3.6.40.8'
+HOST        = 'ec2-user@<YOUR-EC2-IP>'
 REMOTE_BASE = '/home/ec2-user/portfolio'
 SERVICE     = 'portfolio'
 
@@ -232,5 +227,5 @@ if __name__ == '__main__':
 
 **Things to update when recreating on a new machine:**
 - `KEY` — absolute or relative path to your `.pem` file
-- `HOST` — EC2 public IP (currently `3.6.40.8`)
+- `HOST` — EC2 public IP in the format `ec2-user@<ip>`
 - `REMOTE_BASE` — deployment directory on the server (currently `/home/ec2-user/portfolio`)

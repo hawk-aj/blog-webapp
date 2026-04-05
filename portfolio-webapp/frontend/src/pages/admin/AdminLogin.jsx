@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import './AdminLogin.css';
 
 const PHASE = {
   PASSWORD:        'password',
@@ -127,14 +128,15 @@ export default function AdminLogin() {
   });
 
   const inp = (name, extra = {}) => ({
+    className: 'admin-login-input',
     style: { ...s.input, ...(focused === name ? s.inputFocus : {}), ...extra },
     onFocus: () => setFocused(name),
     onBlur:  () => setFocused(''),
   });
 
   return (
-    <div style={s.page}>
-      <div style={s.card}>
+    <div style={s.page} className="admin-login-page">
+      <div style={s.card} className="admin-login-card">
         <div style={s.logo}>
           <span style={s.lockIcon}>&#128274;</span>
           <p style={s.title}>Admin</p>
