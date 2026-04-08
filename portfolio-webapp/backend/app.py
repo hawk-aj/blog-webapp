@@ -59,6 +59,22 @@ def get_ramblings():
 
 @app.route('/api/contact', methods=['POST'])
 def contact():
+    data    = request.get_json(silent=True) or {}
+    name    = data.get('name', '').strip()
+    email   = data.get('email', '').strip()
+    subject = data.get('subject', '').strip()
+    message = data.get('message', '').strip()
+
+    if not all([name, email, subject, message]):
+        return jsonify({'error': 'All fields are required.'}), 400
+
+    try:
+        admin_auth.send_contact_email(name, email, subject, message)
+    except RuntimeError as e:
+        return jsonify({'error': str(e)}), 503
+    except Exception as e:
+        return jsonify({'error': f'Failed to send message: {e}'}), 500
+
     return jsonify({'message': "Thank you for your message! I'll get back to you soon."})
 
 
