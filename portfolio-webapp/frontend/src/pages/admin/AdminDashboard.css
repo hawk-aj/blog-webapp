@@ -4,13 +4,14 @@
   display: flex;
   min-height: 100vh;
   background: var(--bg-primary);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-primary);
 }
 
 /* ── Sidebar ──────────────────────────────────────────────── */
 .admin-sidebar {
   width: 220px;
-  background: var(--bg-deep);
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -20,7 +21,7 @@
 
 .admin-side-header {
   padding: 1.5rem 1.25rem 1rem;
-  border-bottom: 1px solid rgba(201, 203, 163, 0.10);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .admin-nav { flex: 1; padding: 0.75rem 0; }
@@ -28,24 +29,28 @@
 .admin-logout {
   margin: 1rem;
   padding: 0.6rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(201, 203, 163, 0.10);
-  border-radius: 8px;
-  color: rgba(201, 203, 163, 0.60);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
   cursor: pointer;
-  font-size: 0.8rem;
-  font-family: 'Inter', sans-serif;
+  font-size: var(--t-xs);
+  font-family: var(--font-primary);
   width: calc(100% - 2rem);
-  transition: background 0.15s;
+  transition: background var(--transition), color var(--transition);
 }
-.admin-logout:hover { background: rgba(255,255,255,0.08); }
+.admin-logout:hover {
+  background: rgba(240, 82, 122, 0.08);
+  color: var(--accent-pink);
+  border-color: var(--border-accent);
+}
 
 /* ── Overlay (mobile) ─────────────────────────────────────── */
 .admin-overlay {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.40);
   z-index: 99;
 }
 
@@ -60,9 +65,9 @@
 
 /* ── Topbar ───────────────────────────────────────────────── */
 .admin-topbar {
-  background: var(--bg-deep);
+  background: var(--bg-surface);
   padding: 1rem 2rem;
-  border-bottom: 1px solid rgba(201, 203, 163, 0.10);
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -105,7 +110,7 @@
 
   .admin-sidebar.open {
     transform: translateX(0);
-    box-shadow: 4px 0 24px rgba(71, 45, 48, 0.70);
+    box-shadow: var(--shadow-lg);
   }
 
   .admin-overlay.open {
