@@ -134,6 +134,42 @@ def verify_recovery_otp(otp: str) -> bool:
 
 # ── Email ─────────────────────────────────────────────────────────────────────
 
+CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', 'admin@aaryajha.com')
+
+
+def send_contact_email(name: str, sender_email: str, subject: str, message: str):
+    smtp_host = os.environ.get('SMTP_HOST', 'smtp.gmail.com')
+    smtp_port = int(os.environ.get('SMTP_PORT', 587))
+    smtp_user = os.environ.get('SMTP_USER', '')
+    smtp_pass = os.environ.get('SMTP_PASSWORD', '')
+
+    if not smtp_user or not smtp_pass:
+        raise RuntimeError(
+            'SMTP not configured. Set SMTP_USER and SMTP_PASSWORD in .env'
+        )
+
+    body = f"""New message from the contact form on aaryajha.com
+
+From:    {name} <{sender_email}>
+Subject: {subject}
+
+{message}
+
+---
+Reply directly to this email to respond to {name}.
+"""
+    msg = MIMEText(body)
+    msg['Subject'] = f'[aaryajha.com] {subject}'
+    msg['From']    = smtp_user
+    msg['To']      = CONTACT_EMAIL
+    msg['Reply-To'] = f'{name} <{sender_email}>'
+
+    with smtplib.SMTP(smtp_host, smtp_port) as s:
+        s.starttls()
+        s.login(smtp_user, smtp_pass)
+        s.sendmail(smtp_user, [CONTACT_EMAIL], msg.as_string())
+
+
 def send_recovery_email(otp: str):
     smtp_host = os.environ.get('SMTP_HOST', 'smtp.gmail.com')
     smtp_port = int(os.environ.get('SMTP_PORT', 587))
