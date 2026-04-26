@@ -67,7 +67,7 @@ const Contact = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <h2 style={{ marginBottom: '2rem', color: 'var(--primary-color)' }}>
+              <h2 style={{ marginBottom: '2rem', color: 'var(--text-primary)' }}>
                 Let's Connect
               </h2>
               
@@ -189,7 +189,7 @@ const Contact = () => {
 
               {/* Social Links */}
               <div style={{ marginTop: '3rem' }}>
-                <h3 style={{ marginBottom: '1.5rem', color: 'var(--primary-color)' }}>
+                <h3 style={{ marginBottom: '1.5rem', color: 'var(--text-primary)' }}>
                   Find Me Online
                 </h3>
                 <div style={{ display: 'flex', gap: '1rem' }}>
@@ -261,7 +261,7 @@ const Contact = () => {
               transition={{ duration: 0.6, delay: 0.4 }}
             >
               <form onSubmit={handleSubmit} className="contact-form">
-                <h3 style={{ marginBottom: '2rem', color: 'var(--primary-color)' }}>
+                <h3 style={{ marginBottom: '2rem', color: 'var(--text-primary)' }}>
                   Send Me a Message
                 </h3>
 
@@ -408,7 +408,7 @@ const Contact = () => {
                 transition={{ duration: 0.6, delay: 0.1 }}
                 viewport={{ once: true }}
               >
-                <h4 style={{ color: 'var(--primary-color)', marginBottom: '1rem' }}>
+                <h4 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>
                   What kind of projects do you work on?
                 </h4>
                 <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
@@ -425,7 +425,7 @@ const Contact = () => {
                 transition={{ duration: 0.6, delay: 0.2 }}
                 viewport={{ once: true }}
               >
-                <h4 style={{ color: 'var(--primary-color)', marginBottom: '1rem' }}>
+                <h4 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>
                   Are you available for consulting?
                 </h4>
                 <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
@@ -442,7 +442,7 @@ const Contact = () => {
                 transition={{ duration: 0.6, delay: 0.3 }}
                 viewport={{ once: true }}
               >
-                <h4 style={{ color: 'var(--primary-color)', marginBottom: '1rem' }}>
+                <h4 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>
                   Can we meet for coffee in Gurugram?
                 </h4>
                 <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
@@ -458,7 +458,7 @@ const Contact = () => {
                 transition={{ duration: 0.6, delay: 0.4 }}
                 viewport={{ once: true }}
               >
-                <h4 style={{ color: 'var(--primary-color)', marginBottom: '1rem' }}>
+                <h4 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>
                   How quickly do you respond to messages?
                 </h4>
                 <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
