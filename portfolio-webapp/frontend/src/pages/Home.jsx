@@ -4,14 +4,12 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Brain, Database, Cpu } from 'lucide-react';
 import axios from 'axios';
 
-const IMG_SIZE = 180; // px — width & height of the bouncing image
-const SPEED    = 1.4; // px per frame
-
-function BouncingImage({ src }) {
-  const containerRef = useRef(null);
-  const rafRef       = useRef(null);
-  const stateRef     = useRef({ x: 60, y: 80, vx: SPEED, vy: SPEED * 0.75 });
-  const imgRef       = useRef(null);
+// Each bouncer runs its own rAF loop inside a shared full-hero container.
+// Props: src, w, h, x0, y0, vx, vy, opacity, radius
+function Bouncer({ src, w, h, x0, y0, vx0, vy0, opacity = 0.5, radius = '8px', containerRef }) {
+  const rafRef   = useRef(null);
+  const stateRef = useRef({ x: x0, y: y0, vx: vx0, vy: vy0 });
+  const imgRef   = useRef(null);
 
   useEffect(() => {
     const animate = () => {
@@ -25,10 +23,10 @@ function BouncingImage({ src }) {
       s.x += s.vx;
       s.y += s.vy;
 
-      if (s.x <= 0)                   { s.x = 0;                    s.vx = Math.abs(s.vx); }
-      if (s.x >= width  - IMG_SIZE)   { s.x = width  - IMG_SIZE;    s.vx = -Math.abs(s.vx); }
-      if (s.y <= 0)                   { s.y = 0;                    s.vy = Math.abs(s.vy); }
-      if (s.y >= height - IMG_SIZE)   { s.y = height - IMG_SIZE;    s.vy = -Math.abs(s.vy); }
+      if (s.x <= 0)           { s.x = 0;           s.vx =  Math.abs(s.vx); }
+      if (s.x >= width  - w)  { s.x = width  - w;  s.vx = -Math.abs(s.vx); }
+      if (s.y <= 0)           { s.y = 0;            s.vy =  Math.abs(s.vy); }
+      if (s.y >= height - h)  { s.y = height - h;   s.vy = -Math.abs(s.vy); }
 
       img.style.transform = `translate(${s.x}px, ${s.y}px)`;
       rafRef.current = requestAnimationFrame(animate);
@@ -36,37 +34,33 @@ function BouncingImage({ src }) {
 
     rafRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(rafRef.current);
-  }, []);
+  }, [containerRef, w, h]);
 
   return (
-    <div
-      ref={containerRef}
+    <img
+      ref={imgRef}
+      src={src}
+      alt=""
       style={{
         position: 'absolute',
-        inset: 0,
-        overflow: 'hidden',
+        top: 0, left: 0,
+        width: w, height: h,
+        objectFit: 'cover',
+        borderRadius: radius,
+        opacity,
+        willChange: 'transform',
         pointerEvents: 'none',
       }}
-    >
-      <img
-        ref={imgRef}
-        src={src}
-        alt=""
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: IMG_SIZE,
-          height: IMG_SIZE,
-          objectFit: 'cover',
-          borderRadius: '12px',
-          opacity: 0.55,
-          willChange: 'transform',
-        }}
-      />
-    </div>
+    />
   );
 }
+
+const BOUNCERS = [
+  { src: '/skull_smoke_1.png',  w: 200, h: 130, x0: 120,  y0: 80,  vx0:  1.3, vy0:  0.9, opacity: 0.45, radius: '6px'  },
+  { src: '/texture_canva_3.png',w: 160, h: 160, x0: 500,  y0: 250, vx0: -1.1, vy0:  1.2, opacity: 0.50, radius: '8px'  },
+  { src: '/wall_3.png',         w: 170, h: 170, x0: 300,  y0: 400, vx0:  1.0, vy0: -1.0, opacity: 0.50, radius: '8px'  },
+  { src: '/other_plans_01.png', w: 150, h: 150, x0: 700,  y0: 150, vx0: -1.4, vy0:  0.8, opacity: 0.45, radius: '6px'  },
+];
 
 const Home = () => {
   const [profile, setProfile]       = useState(null);
@@ -95,11 +89,18 @@ const Home = () => {
     return <div className="loading"><div className="spinner"></div></div>;
   }
 
+  const heroRef = useRef(null);
+
   return (
     <div className="home">
       {/* Hero */}
-      <section className="hero">
-        <BouncingImage src="/kalakaari.png" />
+      <section className="hero" ref={heroRef}>
+        {/* Bouncing artwork elements */}
+        <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+          {BOUNCERS.map((b, i) => (
+            <Bouncer key={i} {...b} containerRef={heroRef} />
+          ))}
+        </div>
         <div className="hero-content">
           <motion.h1
             className="hero-title"
