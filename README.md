@@ -37,17 +37,13 @@ personal-blog/
 │   ├── setup_admin.py        # Initialise admin credentials in DynamoDB
 │   └── migrate.py            # One-time JSON -> DynamoDB migration
 ├── portfolio-webapp/
-│   ├── backend/              # Original Flask app (reference / local dev)
-│   │   ├── app.py
-│   │   ├── auth.py
-│   │   └── data/             # JSON data files (source of truth for migration)
 │   └── frontend/
 │       ├── src/
 │       │   ├── App.jsx
 │       │   ├── components/Navbar.*
 │       │   └── pages/        # Home, About, Work, Blogs, Ramblings, Contact, Admin
 │       └── package.json
-├── cloudformation.yaml       # Original EC2 stack (archived, replaced by serverless)
+├── DESIGN.md                 # Colour palette and design system reference
 └── README.md
 ```
 
@@ -77,17 +73,11 @@ parameters (JWT secret, SMTP credentials) passed at deploy time — not stored i
 
 ## Local Development
 
-**Frontend** (hot reload, proxies `/api/*` to Flask on port 5000):
+**Frontend** (hot reload against the live API):
 ```bash
-# Terminal 1 — Flask backend
-cd portfolio-webapp/backend
-pip install -r requirements.txt
-PORT=5000 python app.py
-
-# Terminal 2 — Vite dev server
 cd portfolio-webapp/frontend
 npm install && npm run dev
-# -> http://localhost:3000
+# -> http://localhost:3000 (proxies /api/* to aaryajha.com)
 ```
 
 ## API Endpoints
