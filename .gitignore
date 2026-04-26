@@ -25,6 +25,15 @@ portfolio-webapp/notebooks/.ipynb_checkpoints/
 # Admin credentials — never commit
 portfolio-webapp/backend/data/auth.json
 
+# Planning (local only)
+.planning/
+
+# Serverless — generated / sensitive
+cloudformation-serverless.yaml
+serverless/build/
+serverless/portfolio-lambda.zip
+serverless/auth_backup.json
+
 # OS
 .DS_Store
 Thumbs.db

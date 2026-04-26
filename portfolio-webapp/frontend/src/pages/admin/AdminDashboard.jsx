@@ -91,7 +91,6 @@ const c = {
 };
 
 const TABS = [
-  { id: 'overview',   label: 'Overview'   },
   { id: 'blogs',      label: 'Blog Posts' },
   { id: 'profile',    label: 'Profile'    },
   { id: 'experience', label: 'Experience' },
@@ -519,7 +518,7 @@ function RamblingsPanel({ api }) {
 // ── Dashboard shell ───────────────────────────────────────────────────────────
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const [tab, setTab]         = useState('overview');
+  const [tab, setTab]         = useState('blogs');
   const [token, setToken]     = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -582,11 +581,10 @@ export default function AdminDashboard() {
         </div>
 
         <div className="admin-content">
-          {tab === 'overview'   && <OverviewPanel   api={api} />}
-          {tab === 'blogs'      && <BlogsPanel      api={api} />}
-          {tab === 'profile'    && <ProfilePanel    api={api} />}
-          {tab === 'experience' && <ExperiencePanel api={api} />}
-          {tab === 'ramblings'  && <RamblingsPanel  api={api} />}
+          {token && tab === 'blogs'      && <BlogsPanel      api={api} />}
+          {token && tab === 'profile'    && <ProfilePanel    api={api} />}
+          {token && tab === 'experience' && <ExperiencePanel api={api} />}
+          {token && tab === 'ramblings'  && <RamblingsPanel  api={api} />}
         </div>
       </div>
     </div>
