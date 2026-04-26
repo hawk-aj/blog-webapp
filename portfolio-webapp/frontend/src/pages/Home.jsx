@@ -63,9 +63,10 @@ const BOUNCERS = [
 ];
 
 const Home = () => {
-  const [profile, setProfile]       = useState(null);
+  const [profile, setProfile]         = useState(null);
   const [recentBlogs, setRecentBlogs] = useState([]);
-  const [loading, setLoading]       = useState(true);
+  const [loading, setLoading]         = useState(true);
+  const heroRef                       = useRef(null); // must be before any early return
 
   useEffect(() => {
     const fetchData = async () => {
@@ -88,8 +89,6 @@ const Home = () => {
   if (loading) {
     return <div className="loading"><div className="spinner"></div></div>;
   }
-
-  const heroRef = useRef(null);
 
   return (
     <div className="home">
