@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, Brain, Database, Code, Cpu, GitBranch, Zap } from 'lucide-react';
+import { ArrowRight, Brain, Database, Cpu } from 'lucide-react';
 import axios from 'axios';
 
 const Home = () => {
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile]       = useState(null);
   const [recentBlogs, setRecentBlogs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]       = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -17,93 +17,72 @@ const Home = () => {
           axios.get('/api/blogs')
         ]);
         setProfile(profileRes.data);
-        setRecentBlogs(blogsRes.data.slice(0, 2)); // Get latest 2 blogs
+        setRecentBlogs(blogsRes.data.slice(0, 2));
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.3
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.6
-      }
-    }
-  };
-
   if (loading) {
-    return (
-      <div className="loading">
-        <div className="spinner"></div>
-      </div>
-    );
+    return <div className="loading"><div className="spinner"></div></div>;
   }
 
   return (
     <div className="home">
-      {/* Hero Section */}
+      {/* Hero */}
       <section className="hero">
-        <div className="floating-element">
-          <Brain size={60} />
-        </div>
-        <div className="floating-element">
-          <Database size={50} />
-        </div>
-        <div className="floating-element">
-          <Code size={55} />
-        </div>
-        
-        <motion.div 
-          className="hero-content"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <motion.h1 className="hero-title" variants={itemVariants}>
+        <div className="hero-content">
+          <motion.h1
+            className="hero-title"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
             {profile?.name || 'Aarya Jha'}
           </motion.h1>
-          
-          <motion.p className="hero-subtitle" variants={itemVariants}>
-            {profile?.title || 'Data Science Specialist & AI/ML Researcher'}
+
+          <motion.p
+            className="hero-subtitle"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+          >
+            {profile?.title || 'Data Engineer II & AI/ML Researcher'}
           </motion.p>
-          
-          <motion.p className="hero-tagline" variants={itemVariants}>
-            {profile?.tagline || 'Transforming Data into Intelligence, One Algorithm at a Time'}
+
+          <motion.p
+            className="hero-tagline"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.25 }}
+          >
+            {profile?.tagline || 'Transforming data into intelligence, one algorithm at a time'}
           </motion.p>
-          
-          <motion.div className="hero-cta" variants={itemVariants}>
+
+          <motion.div
+            className="hero-cta"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.35 }}
+          >
             <Link to="/work" className="btn btn-primary">
-              Explore My Work <ArrowRight size={20} />
+              My Work <ArrowRight size={18} />
             </Link>
             <Link to="/contact" className="btn btn-outline">
               Get In Touch
             </Link>
           </motion.div>
-        </motion.div>
+        </div>
       </section>
 
-      {/* Quick About Section */}
+      {/* What I Do */}
       <section className="section">
         <div className="container">
-          <motion.div 
+          <motion.div
             className="section-header"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -112,97 +91,68 @@ const Home = () => {
           >
             <h2 className="section-title">What I Do</h2>
             <p className="section-subtitle">
-              Passionate about turning complex data into actionable insights through innovative AI/ML solutions
+              Turning complex data into actionable insights through AI/ML and scalable engineering
             </p>
           </motion.div>
 
           <div className="grid grid-3">
-            <motion.div 
-              className="card"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              viewport={{ once: true }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                <div style={{ 
-                  background: 'var(--gradient-primary)', 
-                  padding: '0.75rem', 
-                  borderRadius: '8px',
+            {[
+              {
+                icon: <Brain size={22} />,
+                title: 'AI/ML Research',
+                body: 'Developing novel approaches in machine learning — recommendation systems, speaker diarization, and more.'
+              },
+              {
+                icon: <Database size={22} />,
+                title: 'Data Engineering',
+                body: 'Building scalable data pipelines and cloud solutions on AWS, making complex data accessible for decisions.'
+              },
+              {
+                icon: <Cpu size={22} />,
+                title: 'Smart Systems',
+                body: 'Creating intelligent IoT solutions and firmware that bridge hardware and intelligent software.'
+              }
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                className="card"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: i * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <div style={{
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  gap: '0.75rem',
+                  marginBottom: '1rem'
                 }}>
-                  <Brain size={24} color="white" />
+                  <div style={{
+                    background: 'var(--bg-tint)',
+                    border: '1px solid var(--border)',
+                    padding: '0.6rem',
+                    borderRadius: 'var(--radius-md)',
+                    display: 'flex',
+                    color: 'var(--accent-blue)'
+                  }}>
+                    {item.icon}
+                  </div>
+                  <h3 style={{ margin: 0, fontSize: 'var(--t-lg)', fontFamily: 'var(--font-primary)', fontWeight: 600 }}>
+                    {item.title}
+                  </h3>
                 </div>
-                <h3>AI/ML Research</h3>
-              </div>
-              <p>
-                Developing novel approaches in machine learning, from recommendation systems to speaker diarization, 
-                pushing the boundaries of what's possible with AI.
-              </p>
-            </motion.div>
-
-            <motion.div 
-              className="card"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                <div style={{ 
-                  background: 'var(--gradient-primary)', 
-                  padding: '0.75rem', 
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <Database size={24} color="white" />
-                </div>
-                <h3>Data Engineering</h3>
-              </div>
-              <p>
-                Building scalable data pipelines and cloud solutions using AWS services, 
-                making complex data accessible and actionable for business decisions.
-              </p>
-            </motion.div>
-
-            <motion.div 
-              className="card"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              viewport={{ once: true }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                <div style={{ 
-                  background: 'var(--gradient-primary)', 
-                  padding: '0.75rem', 
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <Cpu size={24} color="white" />
-                </div>
-                <h3>Smart Systems</h3>
-              </div>
-              <p>
-                Creating intelligent IoT solutions and firmware development for smart devices, 
-                bridging the gap between hardware and intelligent software.
-              </p>
-            </motion.div>
+                <p style={{ margin: 0 }}>{item.body}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Recent Blogs Section */}
+      {/* Latest Blogs */}
       {recentBlogs.length > 0 && (
-        <section className="section" style={{ background: 'var(--light-bg)' }}>
+        <section className="section">
           <div className="container">
-            <motion.div 
+            <motion.div
               className="section-header"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -211,7 +161,7 @@ const Home = () => {
             >
               <h2 className="section-title">Latest Insights</h2>
               <p className="section-subtitle">
-                Recent thoughts and discoveries from my journey in data science and AI
+                Recent thoughts from my journey in data science and AI
               </p>
             </motion.div>
 
@@ -239,37 +189,37 @@ const Home = () => {
               ))}
             </div>
 
-            <motion.div 
+            <motion.div
               style={{ textAlign: 'center', marginTop: '3rem' }}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
               viewport={{ once: true }}
             >
               <Link to="/blogs" className="btn btn-outline">
-                View All Posts <ArrowRight size={20} />
+                View All Posts <ArrowRight size={18} />
               </Link>
             </motion.div>
           </div>
         </section>
       )}
 
-      {/* CTA Section */}
+      {/* CTA */}
       <section className="section">
         <div className="container">
-          <motion.div 
+          <motion.div
             className="text-center"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            <h2 className="section-title">Let's Build Something Amazing</h2>
+            <h2 className="section-title">Let's Build Something</h2>
             <p className="section-subtitle" style={{ marginBottom: '2rem' }}>
-              Interested in collaborating on cutting-edge AI/ML projects or discussing data science innovations?
+              Interested in collaborating on AI/ML or data engineering work? I'd love to hear from you.
             </p>
             <Link to="/contact" className="btn btn-primary">
-              Start a Conversation <ArrowRight size={20} />
+              Start a Conversation <ArrowRight size={18} />
             </Link>
           </motion.div>
         </div>
