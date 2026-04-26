@@ -1,8 +1,72 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Brain, Database, Cpu } from 'lucide-react';
 import axios from 'axios';
+
+const IMG_SIZE = 180; // px — width & height of the bouncing image
+const SPEED    = 1.4; // px per frame
+
+function BouncingImage({ src }) {
+  const containerRef = useRef(null);
+  const rafRef       = useRef(null);
+  const stateRef     = useRef({ x: 60, y: 80, vx: SPEED, vy: SPEED * 0.75 });
+  const imgRef       = useRef(null);
+
+  useEffect(() => {
+    const animate = () => {
+      const container = containerRef.current;
+      const img       = imgRef.current;
+      if (!container || !img) return;
+
+      const { width, height } = container.getBoundingClientRect();
+      const s = stateRef.current;
+
+      s.x += s.vx;
+      s.y += s.vy;
+
+      if (s.x <= 0)                   { s.x = 0;                    s.vx = Math.abs(s.vx); }
+      if (s.x >= width  - IMG_SIZE)   { s.x = width  - IMG_SIZE;    s.vx = -Math.abs(s.vx); }
+      if (s.y <= 0)                   { s.y = 0;                    s.vy = Math.abs(s.vy); }
+      if (s.y >= height - IMG_SIZE)   { s.y = height - IMG_SIZE;    s.vy = -Math.abs(s.vy); }
+
+      img.style.transform = `translate(${s.x}px, ${s.y}px)`;
+      rafRef.current = requestAnimationFrame(animate);
+    };
+
+    rafRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        position: 'absolute',
+        inset: 0,
+        overflow: 'hidden',
+        pointerEvents: 'none',
+      }}
+    >
+      <img
+        ref={imgRef}
+        src={src}
+        alt=""
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: IMG_SIZE,
+          height: IMG_SIZE,
+          objectFit: 'cover',
+          borderRadius: '12px',
+          opacity: 0.55,
+          willChange: 'transform',
+        }}
+      />
+    </div>
+  );
+}
 
 const Home = () => {
   const [profile, setProfile]       = useState(null);
@@ -35,6 +99,7 @@ const Home = () => {
     <div className="home">
       {/* Hero */}
       <section className="hero">
+        <BouncingImage src="/kalakaari.png" />
         <div className="hero-content">
           <motion.h1
             className="hero-title"
