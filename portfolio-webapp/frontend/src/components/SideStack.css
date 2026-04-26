@@ -16,23 +16,21 @@
   position: sticky;
   top: 10vh;
   max-width: 760px;
-  margin: 0 auto 0;
-  background: var(--bg-surface);
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.55);
   border: 1px solid var(--border);
-  border-left: 4px solid var(--accent-pink);
-  border-radius: var(--radius-lg);
-  padding: 2rem 2rem 2rem 1.75rem;
-  box-shadow: var(--shadow-md);
+  border-radius: 0;
+  padding: 2.5rem;
+  box-shadow: none;
   transform-origin: top center;
-  transition: transform 0.35s ease, opacity 0.35s ease, box-shadow 0.35s ease;
+  transition: transform 0.35s ease, opacity 0.35s ease;
   will-change: transform, opacity;
 }
 
 /* Card receding behind the active card */
 .side-stack-card.receding {
   transform: scale(0.96) translateY(-20px);
-  opacity: 0.55;
-  box-shadow: var(--shadow-sm);
+  opacity: 0.35;
 }
 
 /* Cards more than 2 behind active are fully hidden */
@@ -128,8 +126,7 @@
 @media (max-width: 768px) {
   .side-stack-card {
     top: 4vh;
-    padding: 1.5rem 1.25rem 1.5rem 1rem;
-    border-radius: var(--radius-md);
+    padding: 1.75rem 1.25rem;
   }
 
   .ss-header { flex-direction: column; }
