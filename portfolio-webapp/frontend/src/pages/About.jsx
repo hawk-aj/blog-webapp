@@ -95,14 +95,16 @@ const About = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ 
-                      background: 'var(--gradient-primary)', 
-                      padding: '0.5rem', 
-                      borderRadius: '6px',
+                      background: 'var(--bg-tint)',
+                      border: '1px solid var(--border)',
+                      padding: '0.5rem',
+                      borderRadius: 'var(--radius-md)',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      color: 'var(--accent-blue)'
                     }}>
-                      <MapPin size={18} color="white" />
+                      <MapPin size={18} color="var(--accent-blue)" />
                     </div>
                     <div>
                       <div style={{ fontWeight: '500', color: 'var(--text-primary)' }}>Location</div>
@@ -112,14 +114,16 @@ const About = () => {
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ 
-                      background: 'var(--gradient-primary)', 
-                      padding: '0.5rem', 
-                      borderRadius: '6px',
+                      background: 'var(--bg-tint)',
+                      border: '1px solid var(--border)',
+                      padding: '0.5rem',
+                      borderRadius: 'var(--radius-md)',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      color: 'var(--accent-blue)'
                     }}>
-                      <Mail size={18} color="white" />
+                      <Mail size={18} color="var(--accent-blue)" />
                     </div>
                     <div>
                       <div style={{ fontWeight: '500', color: 'var(--text-primary)' }}>Email</div>
@@ -131,14 +135,16 @@ const About = () => {
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ 
-                      background: 'var(--gradient-primary)', 
-                      padding: '0.5rem', 
-                      borderRadius: '6px',
+                      background: 'var(--bg-tint)',
+                      border: '1px solid var(--border)',
+                      padding: '0.5rem',
+                      borderRadius: 'var(--radius-md)',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      color: 'var(--accent-blue)'
                     }}>
-                      <Phone size={18} color="white" />
+                      <Phone size={18} color="var(--accent-blue)" />
                     </div>
                     <div>
                       <div style={{ fontWeight: '500', color: 'var(--text-primary)' }}>Phone</div>
@@ -148,14 +154,16 @@ const About = () => {
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ 
-                      background: 'var(--gradient-primary)', 
-                      padding: '0.5rem', 
-                      borderRadius: '6px',
+                      background: 'var(--bg-tint)',
+                      border: '1px solid var(--border)',
+                      padding: '0.5rem',
+                      borderRadius: 'var(--radius-md)',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      color: 'var(--accent-blue)'
                     }}>
-                      <Github size={18} color="white" />
+                      <Github size={18} color="var(--accent-blue)" />
                     </div>
                     <div>
                       <div style={{ fontWeight: '500', color: 'var(--text-primary)' }}>GitHub</div>
@@ -172,14 +180,16 @@ const About = () => {
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ 
-                      background: 'var(--gradient-primary)', 
-                      padding: '0.5rem', 
-                      borderRadius: '6px',
+                      background: 'var(--bg-tint)',
+                      border: '1px solid var(--border)',
+                      padding: '0.5rem',
+                      borderRadius: 'var(--radius-md)',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      color: 'var(--accent-blue)'
                     }}>
-                      <Linkedin size={18} color="white" />
+                      <Linkedin size={18} color="var(--accent-blue)" />
                     </div>
                     <div>
                       <div style={{ fontWeight: '500', color: 'var(--text-primary)' }}>LinkedIn</div>

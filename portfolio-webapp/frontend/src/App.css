@@ -396,6 +396,16 @@ main { padding-top: 72px; }
 
 .form-group textarea { resize: vertical; min-height: 120px; }
 
+/* ── Blog post body ─────────────────────────────────────────────────────────── */
+.blog-body h2 {
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-weight: 400;
+  color: var(--text-primary);
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+}
+
 /* ── Responsive ─────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   main { padding-top: 64px; }
