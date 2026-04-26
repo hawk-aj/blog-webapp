@@ -56,17 +56,33 @@ function Bouncer({ src, w, h, x0, y0, vx0, vy0, opacity = 0.5, radius = '8px', c
 }
 
 const BOUNCERS = [
-  { src: '/skull_smoke_1.png',  w: 200, h: 130, x0: 120,  y0: 80,  vx0:  1.3, vy0:  0.9, opacity: 0.45, radius: '6px'  },
-  { src: '/texture_canva_3.png',w: 160, h: 160, x0: 500,  y0: 250, vx0: -1.1, vy0:  1.2, opacity: 0.50, radius: '8px'  },
-  { src: '/wall_3.png',         w: 170, h: 170, x0: 300,  y0: 400, vx0:  1.0, vy0: -1.0, opacity: 0.50, radius: '8px'  },
-  { src: '/other_plans_01.png', w: 150, h: 150, x0: 700,  y0: 150, vx0: -1.4, vy0:  0.8, opacity: 0.45, radius: '6px'  },
+  { src: '/skull_smoke_1.png',      w: 200, h: 130, x0: 120, y0: 80,  vx0:  1.3, vy0:  0.9, opacity: 0.45, radius: '6px' },
+  { src: '/texture_canva_3.png',    w: 160, h: 160, x0: 500, y0: 250, vx0: -1.1, vy0:  1.2, opacity: 0.50, radius: '8px' },
+  { src: '/wall_3.png',             w: 170, h: 170, x0: 300, y0: 400, vx0:  1.0, vy0: -1.0, opacity: 0.50, radius: '8px' },
+  { src: '/other_plans_01.png',     w: 150, h: 150, x0: 700, y0: 150, vx0: -1.4, vy0:  0.8, opacity: 0.45, radius: '6px' },
+  { src: '/need_the_sun_now.png',   w: 140, h: 175, x0: 200, y0: 300, vx0:  0.9, vy0: -1.3, opacity: 0.45, radius: '6px' },
+  { src: '/clouds.png',             w: 155, h: 195, x0: 650, y0: 350, vx0: -1.0, vy0:  1.1, opacity: 0.45, radius: '6px' },
+  { src: '/aesthetic_jhopda.png',   w: 145, h: 180, x0: 400, y0: 120, vx0:  1.2, vy0:  0.7, opacity: 0.45, radius: '6px' },
+  { src: '/global_warming_2.png',   w: 160, h: 200, x0: 850, y0: 280, vx0: -0.9, vy0: -1.2, opacity: 0.45, radius: '6px' },
 ];
 
 const Home = () => {
   const [profile, setProfile]         = useState(null);
   const [recentBlogs, setRecentBlogs] = useState([]);
   const [loading, setLoading]         = useState(true);
-  const heroRef                       = useRef(null); // must be before any early return
+  const heroRef        = useRef(null); // must be before any early return
+  const heroContentRef = useRef(null);
+
+  // Parallax — gently shift hero content on scroll
+  useEffect(() => {
+    const onScroll = () => {
+      if (!heroContentRef.current) return;
+      const shift = Math.min(window.scrollY * 0.18, 80);
+      heroContentRef.current.style.transform = `translateY(${shift}px)`;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -100,7 +116,7 @@ const Home = () => {
             <Bouncer key={i} {...b} containerRef={heroRef} />
           ))}
         </div>
-        <div className="hero-content">
+        <div className="hero-content" ref={heroContentRef}>
           <motion.h1
             className="hero-title"
             initial={{ opacity: 0, y: 20 }}

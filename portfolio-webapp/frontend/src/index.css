@@ -79,17 +79,10 @@
 
   --transition: 0.2s ease;
 
-  /* Legacy aliases — keep these so existing JSX inline styles still work.
-     Phase 7 will clean up the JSX and remove these. */
-  --primary-color:    #2E5EF5;
-  --light-bg:         #FAF7F2;
-  --border-color:     rgba(26, 39, 68, 0.12);
-  --soft-cream:       #FFFFFF;
-  --dark-bg:          #1A2744;
-  --pastel-green:     #5A7BA8;
-  --deep-red:         #F0527A;
-  --gradient-primary: #2E5EF5;
-  --gradient-hero:    #2E5EF5;
+  /* Legacy aliases — kept for any remaining inline styles */
+  --primary-color: var(--accent-blue);
+  --light-bg:      var(--bg-primary);
+  --border-color:  var(--border);
 }
 
 /* ── Base ───────────────────────────────────────────────────────────────────── */

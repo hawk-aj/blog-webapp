@@ -97,14 +97,16 @@ const Contact = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <div style={{ 
-                    background: 'var(--gradient-primary)', 
-                    padding: '0.75rem', 
-                    borderRadius: '8px',
+                    background: 'var(--bg-tint)',
+                    border: '1px solid var(--border)',
+                    padding: '0.75rem',
+                    borderRadius: 'var(--radius-md)',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    color: 'var(--accent-blue)'
                   }}>
-                    <Mail size={20} color="white" />
+                    <Mail size={20} />
                   </div>
                   <div>
                     <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
@@ -125,14 +127,16 @@ const Contact = () => {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <div style={{ 
-                    background: 'var(--gradient-primary)', 
-                    padding: '0.75rem', 
-                    borderRadius: '8px',
+                    background: 'var(--bg-tint)',
+                    border: '1px solid var(--border)',
+                    padding: '0.75rem',
+                    borderRadius: 'var(--radius-md)',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    color: 'var(--accent-blue)'
                   }}>
-                    <Phone size={20} color="white" />
+                    <Phone size={20} />
                   </div>
                   <div>
                     <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
@@ -146,14 +150,16 @@ const Contact = () => {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <div style={{ 
-                    background: 'var(--gradient-primary)', 
-                    padding: '0.75rem', 
-                    borderRadius: '8px',
+                    background: 'var(--bg-tint)',
+                    border: '1px solid var(--border)',
+                    padding: '0.75rem',
+                    borderRadius: 'var(--radius-md)',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    color: 'var(--accent-blue)'
                   }}>
-                    <MapPin size={20} color="white" />
+                    <MapPin size={20} />
                   </div>
                   <div>
                     <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
@@ -167,14 +173,16 @@ const Contact = () => {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <div style={{ 
-                    background: 'var(--gradient-primary)', 
-                    padding: '0.75rem', 
-                    borderRadius: '8px',
+                    background: 'var(--bg-tint)',
+                    border: '1px solid var(--border)',
+                    padding: '0.75rem',
+                    borderRadius: 'var(--radius-md)',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    color: 'var(--accent-blue)'
                   }}>
-                    <Coffee size={20} color="white" />
+                    <Coffee size={20} />
                   </div>
                   <div>
                     <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
