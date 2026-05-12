@@ -8,7 +8,8 @@ main { padding-top: 72px; }
 
 /* ── Hero ───────────────────────────────────────────────────────────────────── */
 .hero {
-  min-height: 100vh;
+  /* Height tied to the room footprint so the CTAs below stay in view on most laptops */
+  min-height: clamp(540px, 78vh, 820px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -23,6 +24,76 @@ main { padding-top: 72px; }
   padding: 2rem;
   z-index: 2;
   position: relative;
+}
+
+/* Hero badge — anchor wrapper is positioned at the room's top-right corner
+   in scene space; the badge itself centers on that anchor point (overlaps the corner). */
+.hero-badge-anchor {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.hero-badge {
+  width: clamp(260px, 32vw, 400px);
+  height: clamp(260px, 32vw, 400px);
+  border-radius: 50%;
+  /* Lighter shade of the page cream — reads as part of the canvas, not a white card */
+  background: rgba(253, 251, 246, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(26, 39, 68, 0.10);
+  box-shadow: 0 12px 48px rgba(26, 39, 68, 0.16);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: clamp(1.25rem, 2.6vw, 2.25rem);
+  pointer-events: auto;
+}
+
+.hero-badge-name {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 2.8vw, 2.5rem);
+  font-weight: 400;
+  /* Cobalt — per DESIGN.md: blue is the interactive/headline accent on cream */
+  color: var(--accent-blue);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  margin: 0 0 0.6rem;
+}
+
+.hero-badge-title {
+  font-family: var(--font-primary, 'Inter'), sans-serif;
+  font-size: clamp(0.85rem, 1.05vw, 1.05rem);
+  color: var(--text-primary);
+  line-height: 1.4;
+  margin: 0;
+  max-width: 82%;
+}
+
+/* Tagline + CTAs sit together directly under the hero */
+.hero-cta-section {
+  padding: clamp(1rem, 2vw, 1.5rem) clamp(1.5rem, 5vw, 4rem) 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  text-align: center;
+}
+
+.hero-cta-section .hero-tagline { margin: 0; }
+
+@media (max-width: 720px) {
+  /* On phones the room is tiny — the badge looks better re-centered at the top */
+  .hero-badge-anchor {
+    left: 50% !important;
+    top: 120px !important;
+    transform: translate(-50%, 0);
+  }
+  .hero-badge { width: 240px; height: 240px; }
 }
 
 .hero-title {
