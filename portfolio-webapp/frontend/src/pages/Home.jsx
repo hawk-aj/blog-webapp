@@ -3,75 +3,32 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Brain, Database, Cpu } from 'lucide-react';
 import axios from 'axios';
+import Room3D from '../components/Room3D';
 
-// Each bouncer runs its own rAF loop inside a shared full-hero container.
-// Props: src, w, h, x0, y0, vx, vy, opacity, radius
-function Bouncer({ src, w, h, x0, y0, vx0, vy0, opacity = 0.5, radius = '8px', containerRef }) {
-  const rafRef   = useRef(null);
-  const stateRef = useRef({ x: x0, y: y0, vx: vx0, vy: vy0 });
-  const imgRef   = useRef(null);
-
-  useEffect(() => {
-    const animate = () => {
-      const container = containerRef.current;
-      const img       = imgRef.current;
-      if (!container || !img) return;
-
-      const { width, height } = container.getBoundingClientRect();
-      const s = stateRef.current;
-
-      s.x += s.vx;
-      s.y += s.vy;
-
-      if (s.x <= 0)           { s.x = 0;           s.vx =  Math.abs(s.vx); }
-      if (s.x >= width  - w)  { s.x = width  - w;  s.vx = -Math.abs(s.vx); }
-      if (s.y <= 0)           { s.y = 0;            s.vy =  Math.abs(s.vy); }
-      if (s.y >= height - h)  { s.y = height - h;   s.vy = -Math.abs(s.vy); }
-
-      img.style.transform = `translate(${s.x}px, ${s.y}px)`;
-      rafRef.current = requestAnimationFrame(animate);
-    };
-
-    rafRef.current = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [containerRef, w, h]);
-
-  return (
-    <img
-      ref={imgRef}
-      src={src}
-      alt=""
-      style={{
-        position: 'absolute',
-        top: 0, left: 0,
-        width: w, height: h,
-        objectFit: 'cover',
-        borderRadius: radius,
-        opacity,
-        willChange: 'transform',
-        pointerEvents: 'none',
-      }}
-    />
-  );
+// Mirror Room3D's sizing so the hero badge can anchor to the room's corner.
+const ROOM_BASE_W = 720;
+const ROOM_BASE_H = 480;
+function pickRoomScale(vw, vh) {
+  if (vw < 640) return Math.max(0.32, Math.min(0.55, (vw * 0.92) / ROOM_BASE_W));
+  if (vw < 1024) return Math.max(0.45, Math.min(0.7, (vw * 0.6) / ROOM_BASE_W));
+  return Math.max(0.55, Math.min(0.9, (Math.min(vw, vh * 1.6) * 0.5) / ROOM_BASE_W));
 }
-
-const BOUNCERS = [
-  { src: '/skull_smoke_1.png',      w: 200, h: 130, x0: 120, y0: 80,  vx0:  1.3, vy0:  0.9, opacity: 0.45, radius: '6px' },
-  { src: '/texture_canva_3.png',    w: 160, h: 160, x0: 500, y0: 250, vx0: -1.1, vy0:  1.2, opacity: 0.50, radius: '8px' },
-  { src: '/wall_3.png',             w: 170, h: 170, x0: 300, y0: 400, vx0:  1.0, vy0: -1.0, opacity: 0.50, radius: '8px' },
-  { src: '/other_plans_01.png',     w: 150, h: 150, x0: 700, y0: 150, vx0: -1.4, vy0:  0.8, opacity: 0.45, radius: '6px' },
-  { src: '/need_the_sun_now.png',   w: 140, h: 175, x0: 200, y0: 300, vx0:  0.9, vy0: -1.3, opacity: 0.45, radius: '6px' },
-  { src: '/clouds.png',             w: 155, h: 195, x0: 650, y0: 350, vx0: -1.0, vy0:  1.1, opacity: 0.45, radius: '6px' },
-  { src: '/aesthetic_jhopda.png',   w: 145, h: 180, x0: 400, y0: 120, vx0:  1.2, vy0:  0.7, opacity: 0.45, radius: '6px' },
-  { src: '/global_warming_2.png',   w: 160, h: 200, x0: 850, y0: 280, vx0: -0.9, vy0: -1.2, opacity: 0.45, radius: '6px' },
-];
 
 const Home = () => {
   const [profile, setProfile]         = useState(null);
   const [recentBlogs, setRecentBlogs] = useState([]);
   const [loading, setLoading]         = useState(true);
-  const heroRef        = useRef(null); // must be before any early return
+  const [roomScale, setRoomScale]     = useState(() =>
+    typeof window === 'undefined' ? 0.7 : pickRoomScale(window.innerWidth, window.innerHeight)
+  );
+  const heroRef        = useRef(null);
   const heroContentRef = useRef(null);
+
+  useEffect(() => {
+    const onResize = () => setRoomScale(pickRoomScale(window.innerWidth, window.innerHeight));
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   // Parallax — gently shift hero content on scroll
   useEffect(() => {
@@ -110,54 +67,58 @@ const Home = () => {
     <div className="home">
       {/* Hero */}
       <section className="hero" ref={heroRef}>
-        {/* Bouncing artwork elements */}
-        <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-          {BOUNCERS.map((b, i) => (
-            <Bouncer key={i} {...b} containerRef={heroRef} />
-          ))}
-        </div>
-        <div className="hero-content" ref={heroContentRef}>
-          <motion.h1
-            className="hero-title"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            {profile?.name || 'Aarya Jha'}
-          </motion.h1>
+        {/* 3D cursor-tracked room background (renders the stats blob too) */}
+        <Room3D />
 
-          <motion.p
-            className="hero-subtitle"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.15 }}
-          >
-            {profile?.title || 'Data Engineer II & AI/ML Researcher'}
-          </motion.p>
-
-          <motion.p
-            className="hero-tagline"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.25 }}
-          >
-            {profile?.tagline || 'Transforming data into intelligence, one algorithm at a time'}
-          </motion.p>
-
+        {/* Hero badge — anchored so its centre overlaps the room's top-right corner */}
+        <div
+          ref={heroContentRef}
+          className="hero-badge-anchor"
+          style={{
+            left: `calc(50% + ${(ROOM_BASE_W * roomScale) / 2}px)`,
+            top: `calc(50% - ${(ROOM_BASE_H * roomScale) / 2}px)`,
+          }}
+        >
           <motion.div
-            className="hero-cta"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.35 }}
+            className="hero-badge"
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
-            <Link to="/work" className="btn btn-primary">
-              My Work <ArrowRight size={18} />
-            </Link>
-            <Link to="/contact" className="btn btn-outline">
-              Get In Touch
-            </Link>
+            <h1 className="hero-badge-name">
+              {profile?.name || 'Aarya Jha'}
+            </h1>
+            <p className="hero-badge-title">
+              {profile?.title || 'Data Engineer II & AI/ML Researcher'}
+            </p>
           </motion.div>
         </div>
+
+      </section>
+
+      {/* Tagline + CTAs — single block sitting directly under the hero */}
+      <section className="hero-cta-section">
+        <motion.p
+          className="hero-tagline"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          {profile?.tagline || 'Transforming data into intelligence, one algorithm at a time'}
+        </motion.p>
+        <motion.div
+          className="hero-cta"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <Link to="/work" className="btn btn-primary">
+            My Work <ArrowRight size={18} />
+          </Link>
+          <Link to="/contact" className="btn btn-outline">
+            Get In Touch
+          </Link>
+        </motion.div>
       </section>
 
       {/* What I Do */}
