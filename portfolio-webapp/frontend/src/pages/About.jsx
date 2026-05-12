@@ -53,7 +53,7 @@ const About = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <h2 style={{ marginBottom: '2rem', color: 'var(--primary-color)' }}>My Journey</h2>
+              <h2 style={{ marginBottom: '2rem', color: 'var(--text-primary)' }}>My Journey</h2>
               <div style={{ fontSize: '1.1rem', lineHeight: '1.8', color: 'var(--text-secondary)' }}>
                 <p style={{ marginBottom: '1.5rem' }}>
                   {profile?.bio || `I'm a passionate Data Engineer currently working at S&P Global as a Data Engineer II,
@@ -90,19 +90,21 @@ const About = () => {
               transition={{ duration: 0.6, delay: 0.4 }}
             >
               <div className="card">
-                <h3 style={{ marginBottom: '2rem', color: 'var(--primary-color)' }}>Get In Touch</h3>
+                <h3 style={{ marginBottom: '2rem', color: 'var(--text-primary)' }}>Get In Touch</h3>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ 
-                      background: 'var(--gradient-primary)', 
-                      padding: '0.5rem', 
-                      borderRadius: '6px',
+                      background: 'var(--bg-tint)',
+                      border: '1px solid var(--border)',
+                      padding: '0.5rem',
+                      borderRadius: 'var(--radius-md)',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      color: 'var(--accent-blue)'
                     }}>
-                      <MapPin size={18} color="white" />
+                      <MapPin size={18} color="var(--accent-blue)" />
                     </div>
                     <div>
                       <div style={{ fontWeight: '500', color: 'var(--text-primary)' }}>Location</div>
@@ -112,18 +114,20 @@ const About = () => {
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ 
-                      background: 'var(--gradient-primary)', 
-                      padding: '0.5rem', 
-                      borderRadius: '6px',
+                      background: 'var(--bg-tint)',
+                      border: '1px solid var(--border)',
+                      padding: '0.5rem',
+                      borderRadius: 'var(--radius-md)',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      color: 'var(--accent-blue)'
                     }}>
-                      <Mail size={18} color="white" />
+                      <Mail size={18} color="var(--accent-blue)" />
                     </div>
                     <div>
                       <div style={{ fontWeight: '500', color: 'var(--text-primary)' }}>Email</div>
-                      <a href={`mailto:${profile?.email}`} style={{ color: 'var(--primary-color)' }}>
+                      <a href={`mailto:${profile?.email}`} style={{ color: 'var(--accent-blue)' }}>
                         {profile?.email}
                       </a>
                     </div>
@@ -131,14 +135,16 @@ const About = () => {
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ 
-                      background: 'var(--gradient-primary)', 
-                      padding: '0.5rem', 
-                      borderRadius: '6px',
+                      background: 'var(--bg-tint)',
+                      border: '1px solid var(--border)',
+                      padding: '0.5rem',
+                      borderRadius: 'var(--radius-md)',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      color: 'var(--accent-blue)'
                     }}>
-                      <Phone size={18} color="white" />
+                      <Phone size={18} color="var(--accent-blue)" />
                     </div>
                     <div>
                       <div style={{ fontWeight: '500', color: 'var(--text-primary)' }}>Phone</div>
@@ -148,22 +154,24 @@ const About = () => {
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ 
-                      background: 'var(--gradient-primary)', 
-                      padding: '0.5rem', 
-                      borderRadius: '6px',
+                      background: 'var(--bg-tint)',
+                      border: '1px solid var(--border)',
+                      padding: '0.5rem',
+                      borderRadius: 'var(--radius-md)',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      color: 'var(--accent-blue)'
                     }}>
-                      <Github size={18} color="white" />
+                      <Github size={18} color="var(--accent-blue)" />
                     </div>
                     <div>
                       <div style={{ fontWeight: '500', color: 'var(--text-primary)' }}>GitHub</div>
                       <a 
-                        href={`https://github.com/${profile?.github}`} 
-                        target="_blank" 
+                        href={`https://github.com/${profile?.github}`}
+                        target="_blank"
                         rel="noopener noreferrer"
-                        style={{ color: 'var(--primary-color)' }}
+                        style={{ color: 'var(--accent-blue)' }}
                       >
                         @{profile?.github}
                       </a>
@@ -172,22 +180,24 @@ const About = () => {
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ 
-                      background: 'var(--gradient-primary)', 
-                      padding: '0.5rem', 
-                      borderRadius: '6px',
+                      background: 'var(--bg-tint)',
+                      border: '1px solid var(--border)',
+                      padding: '0.5rem',
+                      borderRadius: 'var(--radius-md)',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      color: 'var(--accent-blue)'
                     }}>
-                      <Linkedin size={18} color="white" />
+                      <Linkedin size={18} color="var(--accent-blue)" />
                     </div>
                     <div>
                       <div style={{ fontWeight: '500', color: 'var(--text-primary)' }}>LinkedIn</div>
                       <a 
-                        href={`https://linkedin.com/in/${profile?.linkedin}`} 
-                        target="_blank" 
+                        href={`https://linkedin.com/in/${profile?.linkedin}`}
+                        target="_blank"
                         rel="noopener noreferrer"
-                        style={{ color: 'var(--primary-color)' }}
+                        style={{ color: 'var(--accent-blue)' }}
                       >
                         {profile?.linkedin}
                       </a>
@@ -198,7 +208,7 @@ const About = () => {
 
               {/* Education & Achievements */}
               <div className="card" style={{ marginTop: '2rem' }}>
-                <h3 style={{ marginBottom: '2rem', color: 'var(--primary-color)' }}>Education & Achievements</h3>
+                <h3 style={{ marginBottom: '2rem', color: 'var(--text-primary)' }}>Education & Achievements</h3>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                   <div>

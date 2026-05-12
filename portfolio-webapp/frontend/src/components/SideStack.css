@@ -1,0 +1,133 @@
+/* ── SideStack ────────────────────────────────────────────────────────────────
+   Scroll-driven stacked card component for the Work/Experience section.
+   Cards are position:sticky; scroll progress drives scale + opacity.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.side-stack-section {
+  position: relative;
+}
+
+/* Tall scroll container — height set inline via JS: 100vh × (cards + 1) */
+.side-stack-track {
+  position: relative;
+}
+
+.side-stack-card {
+  position: sticky;
+  top: 10vh;
+  max-width: 760px;
+  margin: 0 auto 3rem; /* bottom margin = scroll gap between card transitions */
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  padding: 2.5rem;
+  box-shadow: none;
+  transform-origin: top center;
+  transition: transform 0.35s ease, opacity 0.35s ease;
+  will-change: transform, opacity;
+}
+
+/* Card receding behind the active card */
+.side-stack-card.receding {
+  transform: scale(0.95) translateY(-36px);
+  opacity: 0.7;
+}
+
+/* Cards more than 2 behind active are fully hidden */
+.side-stack-card.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Card interior ─────────────────────────────────────────────────────────── */
+.ss-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.ss-title-block { flex: 1; }
+
+.ss-company {
+  font-family: var(--font-primary);
+  font-size: var(--t-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ss-position {
+  font-size: var(--t-base);
+  color: var(--accent-blue);
+  font-weight: 500;
+  margin-bottom: 0.2rem;
+}
+
+.ss-location {
+  font-size: var(--t-sm);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.ss-duration {
+  font-size: var(--t-xs);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  align-self: flex-start;
+}
+
+.ss-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ss-bullets li {
+  position: relative;
+  padding-left: 1.25rem;
+  margin-bottom: 0.6rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-size: 0.9rem;
+}
+
+.ss-bullets li::before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: var(--accent-pink);
+}
+
+/* ── Index indicator ───────────────────────────────────────────────────────── */
+.ss-counter {
+  font-size: var(--t-xs);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  text-align: center;
+  padding: 1.5rem 0;
+  position: sticky;
+  bottom: 1rem;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .side-stack-card {
+    top: 4vh;
+    padding: 1.75rem 1.25rem;
+  }
+
+  .ss-header { flex-direction: column; }
+}

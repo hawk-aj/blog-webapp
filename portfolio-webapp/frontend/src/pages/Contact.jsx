@@ -67,7 +67,7 @@ const Contact = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <h2 style={{ marginBottom: '2rem', color: 'var(--primary-color)' }}>
+              <h2 style={{ marginBottom: '2rem', color: 'var(--text-primary)' }}>
                 Let's Connect
               </h2>
               
@@ -97,14 +97,16 @@ const Contact = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <div style={{ 
-                    background: 'var(--gradient-primary)', 
-                    padding: '0.75rem', 
-                    borderRadius: '8px',
+                    background: 'var(--bg-tint)',
+                    border: '1px solid var(--border)',
+                    padding: '0.75rem',
+                    borderRadius: 'var(--radius-md)',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    color: 'var(--accent-blue)'
                   }}>
-                    <Mail size={20} color="white" />
+                    <Mail size={20} />
                   </div>
                   <div>
                     <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
@@ -125,14 +127,16 @@ const Contact = () => {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <div style={{ 
-                    background: 'var(--gradient-primary)', 
-                    padding: '0.75rem', 
-                    borderRadius: '8px',
+                    background: 'var(--bg-tint)',
+                    border: '1px solid var(--border)',
+                    padding: '0.75rem',
+                    borderRadius: 'var(--radius-md)',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    color: 'var(--accent-blue)'
                   }}>
-                    <Phone size={20} color="white" />
+                    <Phone size={20} />
                   </div>
                   <div>
                     <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
@@ -146,14 +150,16 @@ const Contact = () => {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <div style={{ 
-                    background: 'var(--gradient-primary)', 
-                    padding: '0.75rem', 
-                    borderRadius: '8px',
+                    background: 'var(--bg-tint)',
+                    border: '1px solid var(--border)',
+                    padding: '0.75rem',
+                    borderRadius: 'var(--radius-md)',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    color: 'var(--accent-blue)'
                   }}>
-                    <MapPin size={20} color="white" />
+                    <MapPin size={20} />
                   </div>
                   <div>
                     <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
@@ -167,14 +173,16 @@ const Contact = () => {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <div style={{ 
-                    background: 'var(--gradient-primary)', 
-                    padding: '0.75rem', 
-                    borderRadius: '8px',
+                    background: 'var(--bg-tint)',
+                    border: '1px solid var(--border)',
+                    padding: '0.75rem',
+                    borderRadius: 'var(--radius-md)',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    color: 'var(--accent-blue)'
                   }}>
-                    <Coffee size={20} color="white" />
+                    <Coffee size={20} />
                   </div>
                   <div>
                     <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
@@ -189,7 +197,7 @@ const Contact = () => {
 
               {/* Social Links */}
               <div style={{ marginTop: '3rem' }}>
-                <h3 style={{ marginBottom: '1.5rem', color: 'var(--primary-color)' }}>
+                <h3 style={{ marginBottom: '1.5rem', color: 'var(--text-primary)' }}>
                   Find Me Online
                 </h3>
                 <div style={{ display: 'flex', gap: '1rem' }}>
@@ -261,7 +269,7 @@ const Contact = () => {
               transition={{ duration: 0.6, delay: 0.4 }}
             >
               <form onSubmit={handleSubmit} className="contact-form">
-                <h3 style={{ marginBottom: '2rem', color: 'var(--primary-color)' }}>
+                <h3 style={{ marginBottom: '2rem', color: 'var(--text-primary)' }}>
                   Send Me a Message
                 </h3>
 
@@ -408,7 +416,7 @@ const Contact = () => {
                 transition={{ duration: 0.6, delay: 0.1 }}
                 viewport={{ once: true }}
               >
-                <h4 style={{ color: 'var(--primary-color)', marginBottom: '1rem' }}>
+                <h4 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>
                   What kind of projects do you work on?
                 </h4>
                 <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
@@ -425,7 +433,7 @@ const Contact = () => {
                 transition={{ duration: 0.6, delay: 0.2 }}
                 viewport={{ once: true }}
               >
-                <h4 style={{ color: 'var(--primary-color)', marginBottom: '1rem' }}>
+                <h4 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>
                   Are you available for consulting?
                 </h4>
                 <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
@@ -442,7 +450,7 @@ const Contact = () => {
                 transition={{ duration: 0.6, delay: 0.3 }}
                 viewport={{ once: true }}
               >
-                <h4 style={{ color: 'var(--primary-color)', marginBottom: '1rem' }}>
+                <h4 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>
                   Can we meet for coffee in Gurugram?
                 </h4>
                 <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
@@ -458,7 +466,7 @@ const Contact = () => {
                 transition={{ duration: 0.6, delay: 0.4 }}
                 viewport={{ once: true }}
               >
-                <h4 style={{ color: 'var(--primary-color)', marginBottom: '1rem' }}>
+                <h4 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>
                   How quickly do you respond to messages?
                 </h4>
                 <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
