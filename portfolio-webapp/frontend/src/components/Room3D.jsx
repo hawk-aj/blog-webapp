@@ -37,7 +37,7 @@ async function fetchXkcd() {
 }
 
 function pickScale(vw, vh) {
-  if (vw < 640) return Math.max(0.32, Math.min(0.55, (vw * 0.92) / BASE_W));
+  if (vw < 640) return Math.max(0.28, Math.min(0.44, (vw * 0.82) / BASE_W));
   if (vw < 1024) return Math.max(0.45, Math.min(0.7, (vw * 0.6) / BASE_W));
   return Math.max(0.55, Math.min(0.9, (Math.min(vw, vh * 1.6) * 0.5) / BASE_W));
 }
@@ -94,6 +94,45 @@ export default function Room3D() {
       window.removeEventListener('touchend', onTouchEnd);
     };
   }, [scale]);
+
+  // Single-finger swipe → rotation. Accumulates delta from touch-start so the
+  // finger can start anywhere on screen (not just over the stage).
+  const swipeRef = useRef({ active: false, x: 0, y: 0, baseRx: IDLE_RX, baseRy: IDLE_RY });
+  useEffect(() => {
+    const SENSITIVITY = 0.28; // degrees per pixel of swipe
+
+    const onTouchStart = (e) => {
+      if (e.touches.length !== 1) return;
+      swipeRef.current = {
+        active: true,
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+        baseRx: target.current.rx,
+        baseRy: target.current.ry,
+      };
+    };
+    const onTouchMove = (e) => {
+      const s = swipeRef.current;
+      if (!s.active || e.touches.length !== 1) return;
+      const dx = e.touches[0].clientX - s.x;
+      const dy = e.touches[0].clientY - s.y;
+      target.current = {
+        ...target.current,
+        ry: s.baseRy + dx * SENSITIVITY,
+        rx: s.baseRx - dy * SENSITIVITY,
+      };
+    };
+    const onTouchEnd = () => { swipeRef.current.active = false; };
+
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove',  onTouchMove,  { passive: true });
+    window.addEventListener('touchend',   onTouchEnd);
+    return () => {
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove',  onTouchMove);
+      window.removeEventListener('touchend',   onTouchEnd);
+    };
+  }, []);
 
   useEffect(() => {
     const onMove = (e) => {
@@ -536,8 +575,8 @@ export default function Room3D() {
       {/* ── Stats for nerds — flat card, bottom-left corner ─────────── */}
       <div style={{
         position: 'absolute',
-        left: 'clamp(16px, 3vw, 40px)',
-        bottom: 'clamp(16px, 3vw, 40px)',
+        left: 'clamp(20px, 4vw, 48px)',
+        bottom: 'clamp(20px, 4vw, 48px)',
         // Light cream film + blur for readability over the room
         background: 'rgba(250, 247, 242, 0.22)',
         backdropFilter: 'blur(6px)',
