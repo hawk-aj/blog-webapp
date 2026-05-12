@@ -38,12 +38,16 @@ personal-blog/
 │   └── migrate.py            # One-time JSON -> DynamoDB migration
 ├── portfolio-webapp/
 │   └── frontend/
+│       ├── public/           # Static images for the 3D room (tree, kalakaari, mosaic_2, …)
 │       ├── src/
-│       │   ├── App.jsx
-│       │   ├── components/Navbar.*
+│       │   ├── App.jsx / App.css
+│       │   ├── components/
+│       │   │   ├── Navbar.*
+│       │   │   └── Room3D.jsx   # CSS 3D hero room — see ROOM3D.md
 │       │   └── pages/        # Home, About, Work, Blogs, Ramblings, Contact, Admin
 │       └── package.json
 ├── DESIGN.md                 # Colour palette and design system reference
+├── ROOM3D.md                 # 3D room hero — geometry, animation, and tuning guide
 └── README.md
 ```
 
@@ -53,10 +57,20 @@ personal-blog/
 ```bash
 cd portfolio-webapp/frontend
 npm run build
-aws s3 sync dist/ s3://aaryajha.com-frontend/ --delete
 
-# Invalidate CloudFront cache
-aws cloudfront create-invalidation --distribution-id E2P25BXD8Z53FH --paths "/*"
+# Sync — assets get long-lived immutable cache, index.html gets must-revalidate
+aws s3 sync dist/ s3://aaryajha.com-frontend/ --delete \
+  --cache-control "public,max-age=31536000,immutable" \
+  --exclude "index.html"
+
+aws s3 cp dist/index.html s3://aaryajha.com-frontend/index.html \
+  --cache-control "public,max-age=0,must-revalidate"
+
+# CloudFront invalidation is only needed for static-name assets with long TTLs.
+# JS/CSS bundles are content-hashed (new name = auto cache-bust).
+# index.html uses must-revalidate so CloudFront revalidates every request.
+# Run this only if you changed a non-hashed static asset (e.g. a public/ image):
+# aws cloudfront create-invalidation --distribution-id E2P25BXD8Z53FH --paths "/*"
 ```
 
 ### Lambda (backend)

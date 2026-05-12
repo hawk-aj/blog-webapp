@@ -1,10 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-const ART = ['/tree.png', '/global_warming.png', '/kalakaari.png'];
-const FLOOR_SRC = '/mosaic_2.png';
+const ART = ['/tree.jpg', '/global_warming.jpg', '/kalakaari.jpg'];
+const FLOOR_SRC = '/mosaic_2.jpg';
 const MAX_ROT = 75;
-const IDLE_RX = -6;
-const IDLE_RY = 8;
+// Resting rotation — negative RY swings left wall into view,
+// negative RX tilts floor toward viewer. Kept moderate so cube reads clean.
+const IDLE_RX = -14;
+const IDLE_RY = -18;
 // Use 89.6° instead of a perfect 90° for plane-to-plane rotations so adjacent
 // planes never become exactly coplanar with the camera plane (kills z-fighting +
 // the "flat slab" look at small angles).
@@ -41,6 +43,28 @@ function pickScale(vw, vh) {
   return Math.max(0.55, Math.min(0.9, (Math.min(vw, vh * 1.6) * 0.5) / BASE_W));
 }
 
+// Lightweight mobile placeholder — 3D room is too GPU-heavy on phones.
+function MobileRoom() {
+  return (
+    <div style={{
+      position: 'absolute', inset: 0,
+      background: `
+        linear-gradient(135deg, rgba(250,247,242,0) 60%, rgba(217,174,72,0.06) 100%),
+        var(--bg-primary, #FAF7F2)
+      `,
+      overflow: 'hidden',
+    }}>
+      {/* Subtle grid lines to hint at the room corner */}
+      <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.12 }}
+        viewBox="0 0 400 600" preserveAspectRatio="xMidYMid slice">
+        <line x1="200" y1="0"   x2="0"   y2="600" stroke="#1A2744" strokeWidth="1"/>
+        <line x1="200" y1="0"   x2="400" y2="600" stroke="#1A2744" strokeWidth="1"/>
+        <line x1="0"   y1="300" x2="400" y2="300" stroke="#1A2744" strokeWidth="1"/>
+      </svg>
+    </div>
+  );
+}
+
 export default function Room3D() {
   const stageRef = useRef(null);
   const sceneRef = useRef(null);
@@ -53,6 +77,9 @@ export default function Room3D() {
   const [scale, setScale] = useState(() =>
     typeof window === 'undefined' ? 0.7 : pickScale(window.innerWidth, window.innerHeight)
   );
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth < 640
+  );
   const pinchRef = useRef({ active: false, startDist: 0, startScale: 0.7 });
 
   useEffect(() => {
@@ -60,7 +87,11 @@ export default function Room3D() {
   }, []);
 
   useEffect(() => {
-    const onResize = () => setScale(pickScale(window.innerWidth, window.innerHeight));
+    const onResize = () => {
+      const vw = window.innerWidth, vh = window.innerHeight;
+      setScale(pickScale(vw, vh));
+      setIsMobile(vw < 640);
+    };
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
@@ -232,6 +263,8 @@ export default function Room3D() {
         transform: `translateX(${W - D / 2}px) translateY(${H}px) translateZ(${-D / 2}px) rotateY(90deg)` }} />
     </>
   );
+
+  if (isMobile) return <MobileRoom />;
 
   return (
     <div style={{

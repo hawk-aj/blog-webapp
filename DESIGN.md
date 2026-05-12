@@ -112,13 +112,23 @@ Inspired by aither.co. The navbar detaches from the top on scroll and floats as 
 - Logo: ink text, no accent character (cleaner than v3)
 
 ### Hero
-- Background: `--bg-primary` (cream) — flat
-- Headline: `DM Serif Display`, `--t-3xl`, ink
-- Subheading: `Inter`, `--t-lg`, steel
-- Tagline/role: `Inter`, `--t-sm`, muted steel
-- CTA primary: cobalt fill, white text; hover → `--accent-blue-hover`
-- CTA outline: ink border + ink text; hover → cobalt border + cobalt text
-- No floating background icons (too busy for the v4 direction)
+- Background: `--bg-primary` (cream) — flat canvas behind the 3D room
+- **3D room** centred at ~50% viewport width/height — see `ROOM3D.md` for full spec
+- **Name card** (right of room, overlapping its right edge):
+  - Flat card with 22% cream backdrop-blur, no blob shape
+  - Name: `DM Serif Display`, `clamp(1.6rem, 2.5vw, 2.2rem)`, ink
+  - Title: `Inter`, `clamp(0.8rem, 0.95vw, 0.92rem)`, steel
+  - Bottom divider: 2px solid `--accent-pink` (same as navbar active underline)
+  - `filter: drop-shadow(0 10px 28px rgba(26,39,68,0.13))`
+- **Tagline + CTAs** stacked directly below the name card, right-aligned
+  - Tagline: `--font-mono`, `--t-sm`, `--text-muted`; slight cream text-shadow for legibility over the room
+  - CTA primary: cobalt fill, white text; hover → `--accent-blue-hover`
+  - CTA outline: ink border + ink text; hover → cobalt border + cobalt text
+- **Stats-for-nerds card** (bottom-left of hero):
+  - Flat card, 22% cream backdrop-blur, no blob
+  - Top divider: 2px solid `--accent-pink`
+  - `filter: drop-shadow(0 10px 24px rgba(26,39,68,0.12))`
+  - Content: live fps, cursor %, rotation, scale, current xkcd number in `--font-mono`
 
 ### Buttons
 - **Primary** — `#2E5EF5` fill, white text; hover → `#1A4AD4`; border-radius: `8px`
