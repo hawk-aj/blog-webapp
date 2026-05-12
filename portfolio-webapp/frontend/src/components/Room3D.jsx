@@ -27,12 +27,10 @@ const PINK        = '#F0527A';
 const CLOUD       = '#FFFFFF';
 
 async function fetchXkcd() {
-  // allorigins.win is a maintained CORS proxy with reliable production availability.
-  const proxy = (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`;
+  // Routed through our own Lambda (/api/xkcd) — no third-party CORS proxy needed.
   try {
-    const cur  = await fetch(proxy('https://xkcd.com/info.0.json')).then(r => r.json());
-    const prev = await fetch(proxy(`https://xkcd.com/${cur.num - 1}/info.0.json`)).then(r => r.json());
-    return [cur, prev];
+    const { today, yesterday } = await fetch('/api/xkcd').then(r => r.json());
+    return [today, yesterday];
   } catch {
     return [null, null];
   }

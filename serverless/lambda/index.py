@@ -94,6 +94,20 @@ def get_blog(event, m):
 def get_ramblings(event, _):
     return ok(db.load_list('ramblings', reverse=True))
 
+def get_xkcd(event, _):
+    """Proxy xkcd JSON — avoids CORS issues on the frontend."""
+    import urllib.request
+    try:
+        with urllib.request.urlopen('https://xkcd.com/info.0.json', timeout=5) as r:
+            cur = json.loads(r.read())
+        with urllib.request.urlopen(
+            f'https://xkcd.com/{cur["num"] - 1}/info.0.json', timeout=5
+        ) as r:
+            prev = json.loads(r.read())
+        return ok({'today': cur, 'yesterday': prev})
+    except Exception as exc:
+        return err(502, f'xkcd unavailable: {exc}')
+
 def contact(event, _):
     data    = get_body(event)
     name    = data.get('name', '').strip()
@@ -269,6 +283,7 @@ ROUTES = [
     ('GET',    r'^/api/blogs$',                     get_blogs),
     ('GET',    r'^/api/blogs/(\d+)$',               get_blog),
     ('GET',    r'^/api/ramblings$',                 get_ramblings),
+    ('GET',    r'^/api/xkcd$',                      get_xkcd),
     ('POST',   r'^/api/contact$',                   contact),
     ('POST',   r'^/api/admin/login$',               admin_login),
     ('POST',   r'^/api/admin/verify-2fa$',          admin_verify_2fa),
