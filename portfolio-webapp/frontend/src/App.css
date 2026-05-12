@@ -104,17 +104,43 @@ main { padding-top: 72px; }
 
 .hero-panel-foot .hero-cta { justify-content: flex-end; }
 
+/* Mobile identity section — hidden on desktop, shown after hero in scroll flow */
+.mobile-identity {
+  display: none;
+}
+
 @media (max-width: 720px) {
-  .hero-right-panel {
-    left: 50% !important;
-    top: 8%;
-    width: clamp(200px, 76vw, 300px);
+  /* Panel overlaid on the room overflows on small screens — hide it */
+  .hero-right-panel { display: none !important; }
+
+  /* Compact the hero so the 3D scene is a hero block, not full-screen */
+  .hero { min-height: min(56vw, 70vh); }
+
+  /* Mobile identity flows below the hero */
+  .mobile-identity {
+    display: flex;
+    flex-direction: column;
     align-items: center;
+    gap: 1rem;
+    padding: clamp(1.25rem, 5vw, 2rem) clamp(1rem, 5vw, 2rem) 0;
+    text-align: center;
   }
-  .hero-badge { text-align: center; }
-  /* no override needed — solid pink works the same on mobile */
-  .hero-panel-foot { align-items: center; text-align: center; }
-  .hero-panel-foot .hero-cta { justify-content: center; }
+
+  .mobile-identity .hero-badge {
+    width: auto;
+    height: auto;
+    aspect-ratio: unset;
+    border-radius: 0 0 4px 4px;
+    text-align: center;
+    padding: clamp(0.75rem, 3vw, 1rem);
+  }
+
+  .mobile-identity .hero-panel-foot {
+    align-items: center;
+    text-align: center;
+  }
+
+  .mobile-identity .hero-panel-foot .hero-cta { justify-content: center; }
 }
 
 .hero-title {

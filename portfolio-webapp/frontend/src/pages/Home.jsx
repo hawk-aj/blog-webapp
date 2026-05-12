@@ -30,12 +30,14 @@ const Home = () => {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // Parallax — gently shift hero content on scroll
+  // Parallax — shift the hero panel upward on scroll.
+  // Must include translateX(-50%) because writing style.transform overwrites
+  // the CSS class rule; without it the panel loses its horizontal centering.
   useEffect(() => {
     const onScroll = () => {
       if (!heroContentRef.current) return;
-      const shift = Math.min(window.scrollY * 0.18, 80);
-      heroContentRef.current.style.transform = `translateY(${shift}px)`;
+      const shift = Math.min(window.scrollY * 0.12, 60);
+      heroContentRef.current.style.transform = `translateX(-50%) translateY(-${shift}px)`;
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -119,6 +121,32 @@ const Home = () => {
         </div>
 
       </section>
+
+      {/* Mobile identity — shown below the hero on small screens only.
+          On desktop this is hidden; the hero-right-panel handles it. */}
+      <div className="mobile-identity">
+        <div className="hero-badge">
+          <h1 className="hero-badge-name">
+            {profile?.name || 'Aarya Jha'}
+          </h1>
+          <p className="hero-badge-title">
+            {profile?.title || 'Data Engineer II & AI/ML Researcher'}
+          </p>
+        </div>
+        <div className="hero-panel-foot">
+          <p className="hero-tagline">
+            {profile?.tagline || 'Transforming data into intelligence, one algorithm at a time'}
+          </p>
+          <div className="hero-cta">
+            <Link to="/work" className="btn btn-primary">
+              My Work <ArrowRight size={18} />
+            </Link>
+            <Link to="/contact" className="btn btn-outline">
+              Get In Touch
+            </Link>
+          </div>
+        </div>
+      </div>
 
       {/* What I Do */}
       <section className="section">
