@@ -26,74 +26,95 @@ main { padding-top: 72px; }
   position: relative;
 }
 
-/* Hero badge — anchor wrapper is positioned at the room's top-right corner
-   in scene space; the badge itself centers on that anchor point (overlaps the corner). */
-.hero-badge-anchor {
+/* ── Hero right panel: name + title card + foot ────────────────────────────── */
+.hero-right-panel {
   position: absolute;
-  transform: translate(-50%, -50%);
+  top: 14%;
+  transform: translateX(-50%);
   z-index: 3;
-  pointer-events: none;
-}
-
-.hero-badge {
-  width: clamp(260px, 32vw, 400px);
-  height: clamp(260px, 32vw, 400px);
-  border-radius: 50%;
-  /* Lighter shade of the page cream — reads as part of the canvas, not a white card */
-  background: rgba(253, 251, 246, 0.92);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(26, 39, 68, 0.10);
-  box-shadow: 0 12px 48px rgba(26, 39, 68, 0.16);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: clamp(1.25rem, 2.6vw, 2.25rem);
+  align-items: flex-end;         /* right-flush — badge is on the right side */
+  gap: clamp(1rem, 1.8vw, 1.5rem);
+  pointer-events: none;
+  width: clamp(220px, 26vw, 320px);
+}
+
+/* Name card — flat, no blob. Just text, a divider line, and a shadow. */
+.hero-badge {
+  position: relative;
+  width: 100%;
+  padding: 0 0 clamp(0.9rem, 1.4vw, 1.2rem);
   pointer-events: auto;
+  text-align: right;
+  /* A very light cream film for text legibility over the room */
+  background: rgba(250, 247, 242, 0.22);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border-radius: 4px 4px 0 0;
+  padding: clamp(0.75rem, 1.2vw, 1rem) clamp(0.75rem, 1.2vw, 1rem) clamp(0.9rem, 1.4vw, 1.2rem);
+  /* Soft shadow below the whole card */
+  filter: drop-shadow(0 10px 28px rgba(26, 39, 68, 0.13));
+}
+
+/* Solid pink bottom divider — matches navbar active link */
+.hero-badge::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent-pink);
+  border-radius: 1px;
 }
 
 .hero-badge-name {
   font-family: var(--font-display);
-  font-size: clamp(1.75rem, 2.8vw, 2.5rem);
+  font-size: clamp(1.6rem, 2.5vw, 2.2rem);
   font-weight: 400;
-  /* Cobalt — per DESIGN.md: blue is the interactive/headline accent on cream */
-  color: var(--accent-blue);
+  color: var(--text-primary);
   letter-spacing: -0.02em;
   line-height: 1.05;
-  margin: 0 0 0.6rem;
+  margin: 0 0 0.35rem;
 }
 
 .hero-badge-title {
   font-family: var(--font-primary, 'Inter'), sans-serif;
-  font-size: clamp(0.85rem, 1.05vw, 1.05rem);
-  color: var(--text-primary);
-  line-height: 1.4;
+  font-size: clamp(0.8rem, 0.95vw, 0.92rem);
+  color: var(--text-secondary);
+  line-height: 1.45;
   margin: 0;
-  max-width: 82%;
 }
 
-/* Tagline + CTAs sit together directly under the hero */
-.hero-cta-section {
-  padding: clamp(1rem, 2vw, 1.5rem) clamp(1.5rem, 5vw, 4rem) 0;
+/* Tagline + buttons — inherit right-align from panel */
+.hero-panel-foot {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: clamp(0.75rem, 1.5vw, 1.25rem);
-  text-align: center;
+  align-items: flex-end;
+  gap: 0.8rem;
+  text-align: right;
+  pointer-events: auto;
+  width: 100%;
 }
 
-.hero-cta-section .hero-tagline { margin: 0; }
+.hero-panel-foot .hero-tagline {
+  margin: 0;
+  font-size: var(--t-sm);
+  text-shadow: 0 1px 10px rgba(250, 247, 242, 0.8);
+}
+
+.hero-panel-foot .hero-cta { justify-content: flex-end; }
 
 @media (max-width: 720px) {
-  /* On phones the room is tiny — the badge looks better re-centered at the top */
-  .hero-badge-anchor {
+  .hero-right-panel {
     left: 50% !important;
-    top: 120px !important;
-    transform: translate(-50%, 0);
+    top: 8%;
+    width: clamp(200px, 76vw, 300px);
+    align-items: center;
   }
-  .hero-badge { width: 240px; height: 240px; }
+  .hero-badge { text-align: center; }
+  /* no override needed — solid pink works the same on mobile */
+  .hero-panel-foot { align-items: center; text-align: center; }
+  .hero-panel-foot .hero-cta { justify-content: center; }
 }
 
 .hero-title {

@@ -3,11 +3,8 @@ import React, { useEffect, useRef, useState } from 'react';
 const ART = ['/tree.png', '/global_warming.png', '/kalakaari.png'];
 const FLOOR_SRC = '/mosaic_2.png';
 const MAX_ROT = 75;
-// "89° rule": offset the resting rotation a few degrees so the cube always shows
-// three faces (never edge-on) and seams between perpendicular planes never coincide
-// at exactly 90° relative to the viewer — that's when CSS 3D renders harshest.
-const IDLE_RX = -6;   // slight downward tilt
-const IDLE_RY = 8;    // slight swing to the right
+const IDLE_RX = -6;
+const IDLE_RY = 8;
 // Use 89.6° instead of a perfect 90° for plane-to-plane rotations so adjacent
 // planes never become exactly coplanar with the camera plane (kills z-fighting +
 // the "flat slab" look at small angles).
@@ -25,7 +22,6 @@ const CREAM_EDGE  = '#EFE9DD'; // slightly darker cream for the rim
 const INK         = '#1A2744';
 const STEEL       = '#5A7BA8';
 const PINK        = '#F0527A';
-const BORDER      = 'rgba(26, 39, 68, 0.12)';
 const CLOUD       = '#FFFFFF';
 
 async function fetchXkcd() {
@@ -57,6 +53,7 @@ export default function Room3D() {
   const [scale, setScale] = useState(() =>
     typeof window === 'undefined' ? 0.7 : pickScale(window.innerWidth, window.innerHeight)
   );
+  const pinchRef = useRef({ active: false, startDist: 0, startScale: 0.7 });
 
   useEffect(() => {
     fetchXkcd().then((x) => { xkcdRef.current = x; setXkcd(x); });
@@ -67,6 +64,34 @@ export default function Room3D() {
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
+
+  // Pinch-to-scale: two-finger pinch adjusts the room scale directly.
+  useEffect(() => {
+    const pinchDist = (t) =>
+      Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+
+    const onTouchStart = (e) => {
+      if (e.touches.length === 2) {
+        pinchRef.current = { active: true, startDist: pinchDist(e.touches), startScale: scale };
+      }
+    };
+    const onTouchMove = (e) => {
+      const p = pinchRef.current;
+      if (!p.active || e.touches.length !== 2) return;
+      const ratio = pinchDist(e.touches) / p.startDist;
+      setScale(Math.min(1.4, Math.max(0.28, p.startScale * ratio)));
+    };
+    const onTouchEnd = () => { pinchRef.current.active = false; };
+
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', onTouchEnd);
+    return () => {
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [scale]);
 
   useEffect(() => {
     const onMove = (e) => {
@@ -483,12 +508,12 @@ export default function Room3D() {
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             borderRadius: 4,
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden',
+            // No backfaceVisibility:hidden — viewer looks at the back face of this
+            // rotateX(-90°) plane from above, hiding it would erase the floor image.
           }}>
             <div style={{
               position: 'absolute', inset: 0,
-              background: 'rgba(250, 247, 242, 0.45)',
+              background: 'rgba(250, 247, 242, 0.18)',
             }} />
             <div style={{
               position: 'absolute', inset: 0,
@@ -504,26 +529,29 @@ export default function Room3D() {
         </div>
       </div>
 
-      {/* ── Stats for nerds — circular blob in the bottom-left corner ─── */}
+      {/* ── Stats for nerds — flat card, bottom-left corner ─────────── */}
       <div style={{
         position: 'absolute',
         left: 'clamp(16px, 3vw, 40px)',
         bottom: 'clamp(16px, 3vw, 40px)',
-        width: 'clamp(180px, 18vw, 220px)',
-        height: 'clamp(180px, 18vw, 220px)',
-        borderRadius: '50%',
-        background: 'rgba(253, 251, 246, 0.92)',
-        border: `1px solid ${BORDER}`,
-        boxShadow: '0 8px 32px rgba(26, 39, 68, 0.12)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '18px',
+        // Light cream film + blur for readability over the room
+        background: 'rgba(250, 247, 242, 0.22)',
+        backdropFilter: 'blur(6px)',
+        WebkitBackdropFilter: 'blur(6px)',
+        borderRadius: '0 0 4px 4px',
+        padding: '10px 12px 14px',
+        // Drop shadow below
+        filter: 'drop-shadow(0 10px 24px rgba(26, 39, 68, 0.12))',
         pointerEvents: 'auto',
       }}>
+        {/* Solid pink top divider — matches navbar active link style */}
+        <div style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0,
+          height: '2px',
+          background: '#F0527A',
+          borderRadius: '4px 4px 0 0',
+        }} />
         <div style={{
           color: PINK,
           fontFamily: "'JetBrains Mono', monospace",
@@ -532,6 +560,7 @@ export default function Room3D() {
           textTransform: 'uppercase',
           marginBottom: 8,
           fontWeight: 500,
+          paddingTop: 6,
         }}>
           stats / nerds
         </div>
