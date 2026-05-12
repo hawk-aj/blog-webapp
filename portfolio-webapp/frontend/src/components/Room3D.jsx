@@ -27,7 +27,8 @@ const PINK        = '#F0527A';
 const CLOUD       = '#FFFFFF';
 
 async function fetchXkcd() {
-  const proxy = (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`;
+  // allorigins.win is a maintained CORS proxy with reliable production availability.
+  const proxy = (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`;
   try {
     const cur  = await fetch(proxy('https://xkcd.com/info.0.json')).then(r => r.json());
     const prev = await fetch(proxy(`https://xkcd.com/${cur.num - 1}/info.0.json`)).then(r => r.json());
@@ -43,27 +44,6 @@ function pickScale(vw, vh) {
   return Math.max(0.55, Math.min(0.9, (Math.min(vw, vh * 1.6) * 0.5) / BASE_W));
 }
 
-// Lightweight mobile placeholder — 3D room is too GPU-heavy on phones.
-function MobileRoom() {
-  return (
-    <div style={{
-      position: 'absolute', inset: 0,
-      background: `
-        linear-gradient(135deg, rgba(250,247,242,0) 60%, rgba(217,174,72,0.06) 100%),
-        var(--bg-primary, #FAF7F2)
-      `,
-      overflow: 'hidden',
-    }}>
-      {/* Subtle grid lines to hint at the room corner */}
-      <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.12 }}
-        viewBox="0 0 400 600" preserveAspectRatio="xMidYMid slice">
-        <line x1="200" y1="0"   x2="0"   y2="600" stroke="#1A2744" strokeWidth="1"/>
-        <line x1="200" y1="0"   x2="400" y2="600" stroke="#1A2744" strokeWidth="1"/>
-        <line x1="0"   y1="300" x2="400" y2="300" stroke="#1A2744" strokeWidth="1"/>
-      </svg>
-    </div>
-  );
-}
 
 export default function Room3D() {
   const stageRef = useRef(null);
@@ -77,9 +57,6 @@ export default function Room3D() {
   const [scale, setScale] = useState(() =>
     typeof window === 'undefined' ? 0.7 : pickScale(window.innerWidth, window.innerHeight)
   );
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' && window.innerWidth < 640
-  );
   const pinchRef = useRef({ active: false, startDist: 0, startScale: 0.7 });
 
   useEffect(() => {
@@ -87,11 +64,7 @@ export default function Room3D() {
   }, []);
 
   useEffect(() => {
-    const onResize = () => {
-      const vw = window.innerWidth, vh = window.innerHeight;
-      setScale(pickScale(vw, vh));
-      setIsMobile(vw < 640);
-    };
+    const onResize = () => setScale(pickScale(window.innerWidth, window.innerHeight));
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
@@ -264,8 +237,6 @@ export default function Room3D() {
     </>
   );
 
-  if (isMobile) return <MobileRoom />;
-
   return (
     <div style={{
       position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0,
@@ -299,8 +270,10 @@ export default function Room3D() {
             left: '50%', top: '50%',
             width: W, height: H,
             marginLeft: -W / 2, marginTop: -H / 2,
-            transform: `scale(${scale})`,
-            transformOrigin: `0% 100% ${-D}px`,
+            // Include IDLE rotations in initial render so there is no jump
+            // on the first rAF tick from "flat" to "rotated".
+            transform: `scale(${scale}) rotateX(${IDLE_RX}deg) rotateY(${IDLE_RY}deg)`,
+            transformOrigin: `50% 50% ${-D / 2}px`,
             transformStyle: 'preserve-3d',
             willChange: 'transform',
           }}
