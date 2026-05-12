@@ -129,6 +129,11 @@ Inspired by aither.co. The navbar detaches from the top on scroll and floats as 
   - Top divider: 2px solid `--accent-pink`
   - `filter: drop-shadow(0 10px 24px rgba(26,39,68,0.12))`
   - Content: live fps, cursor %, rotation, scale, current xkcd number in `--font-mono`
+- **Mobile (≤ 720 px):**
+  - Hero compacts to `min(56vw, 70vh)` — room visible without full-screen lock
+  - Name card + tagline + CTAs move below the hero in normal scroll flow
+  - Room still renders (all images are JPEG ≤ 400 KB)
+  - Single-finger swipe rotates the room; two-finger pinch scales it
 
 ### Buttons
 - **Primary** — `#2E5EF5` fill, white text; hover → `#1A4AD4`; border-radius: `8px`

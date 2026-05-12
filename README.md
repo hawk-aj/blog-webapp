@@ -58,19 +58,18 @@ personal-blog/
 cd portfolio-webapp/frontend
 npm run build
 
-# Sync — assets get long-lived immutable cache, index.html gets must-revalidate
+# Assets: long-lived immutable cache (content-hashed filenames auto-bust on change)
 aws s3 sync dist/ s3://aaryajha.com-frontend/ --delete \
   --cache-control "public,max-age=31536000,immutable" \
   --exclude "index.html"
 
+# index.html: always revalidate
 aws s3 cp dist/index.html s3://aaryajha.com-frontend/index.html \
   --cache-control "public,max-age=0,must-revalidate"
 
-# CloudFront invalidation is only needed for static-name assets with long TTLs.
-# JS/CSS bundles are content-hashed (new name = auto cache-bust).
-# index.html uses must-revalidate so CloudFront revalidates every request.
-# Run this only if you changed a non-hashed static asset (e.g. a public/ image):
-# aws cloudfront create-invalidation --distribution-id E2P25BXD8Z53FH --paths "/*"
+# Always invalidate after a deploy — old JS bundle hashes are deleted by --delete,
+# and stale CloudFront edges would serve an index.html pointing at deleted files.
+aws cloudfront create-invalidation --distribution-id E2P25BXD8Z53FH --paths "/*"
 ```
 
 ### Lambda (backend)
@@ -103,6 +102,7 @@ npm install && npm run dev
 | GET | `/api/blogs` | — | All blog posts |
 | GET | `/api/blogs/<id>` | — | Single blog post |
 | GET | `/api/ramblings` | — | Personal ramblings |
+| GET | `/api/xkcd` | — | Today + yesterday xkcd (Lambda proxies xkcd.com to avoid browser CORS) |
 | POST | `/api/contact` | — | Contact form (sends email) |
 | POST | `/api/admin/login` | — | Password auth, returns pre-auth JWT |
 | POST | `/api/admin/verify-2fa` | pre-auth | TOTP verify, returns admin JWT |
