@@ -70,18 +70,18 @@ const Home = () => {
         {/* 3D cursor-tracked room background (renders the stats blob too) */}
         <Room3D />
 
-        {/* Hero badge — anchored so its centre overlaps the room's top-right corner */}
+        {/* Right panel: badge + tagline + buttons in one flex column,
+            centred on the room's right-edge x-position */}
         <div
           ref={heroContentRef}
-          className="hero-badge-anchor"
+          className="hero-right-panel"
           style={{
             left: `calc(50% + ${(ROOM_BASE_W * roomScale) / 2}px)`,
-            top: `calc(50% - ${(ROOM_BASE_H * roomScale) / 2}px)`,
           }}
         >
           <motion.div
             className="hero-badge"
-            initial={{ opacity: 0, scale: 0.92 }}
+            initial={{ opacity: 0, scale: 0.94 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
@@ -92,33 +92,32 @@ const Home = () => {
               {profile?.title || 'Data Engineer II & AI/ML Researcher'}
             </p>
           </motion.div>
+
+          <div className="hero-panel-foot">
+            <motion.p
+              className="hero-tagline"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              {profile?.tagline || 'Transforming data into intelligence, one algorithm at a time'}
+            </motion.p>
+            <motion.div
+              className="hero-cta"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              <Link to="/work" className="btn btn-primary">
+                My Work <ArrowRight size={18} />
+              </Link>
+              <Link to="/contact" className="btn btn-outline">
+                Get In Touch
+              </Link>
+            </motion.div>
+          </div>
         </div>
 
-      </section>
-
-      {/* Tagline + CTAs — single block sitting directly under the hero */}
-      <section className="hero-cta-section">
-        <motion.p
-          className="hero-tagline"
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          {profile?.tagline || 'Transforming data into intelligence, one algorithm at a time'}
-        </motion.p>
-        <motion.div
-          className="hero-cta"
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <Link to="/work" className="btn btn-primary">
-            My Work <ArrowRight size={18} />
-          </Link>
-          <Link to="/contact" className="btn btn-outline">
-            Get In Touch
-          </Link>
-        </motion.div>
       </section>
 
       {/* What I Do */}
