@@ -1,6 +1,6 @@
 # 3D Room Hero — Reference
 
-The hero section of the home page renders a pure CSS 3D room using `perspective` and `preserve-3d`. No WebGL, no canvas — just CSS transforms on `<div>` elements.
+The hero section renders a pure CSS 3D room using `perspective` and `preserve-3d`. No WebGL, no canvas — just CSS transforms on `<div>` elements. Source: `portfolio-webapp/frontend/src/components/Room3D.jsx`.
 
 ---
 
@@ -14,7 +14,7 @@ The room is a three-sided open box (back wall, left wall, floor). All three plan
 | `BASE_H` | 480 px | Wall height |
 | `BASE_D` | 520 px | Depth (left-wall width / floor depth) |
 | `T`      | 32 px  | Rim slab thickness |
-| `PERP`   | 89.6°  | Plane-to-plane rotation (not exactly 90° — avoids z-fighting seams) |
+| `PERP`   | 89.6°  | Plane-to-plane rotation — avoids z-fighting at exact 90° |
 
 ### Plane positions (scene-local)
 
@@ -25,103 +25,135 @@ The room is a three-sided open box (back wall, left wall, floor). All three plan
 | Floor | `translateY(H) rotateX(-89.6deg)`, origin `top center` | −Y (up) |
 
 Each plane also has:
-- An exterior back-face sibling (solid `CREAM_EDGE`) for opacity when the cube is rotated past 90°
-- Four rim strips (also `CREAM_EDGE`) along its edges to give slab/Lego thickness
+- An **exterior back-face sibling** (solid `CREAM_EDGE`) visible when the cube rotates past 90°
+- **Four rim strips** (`CREAM_EDGE`, T px deep) along its edges for slab / Lego thickness
+- `backfaceVisibility: hidden` on frame and bulb content so art doesn't bleed through the back
 
 ### Transform pivot
 
-`transformOrigin: 50% 50% ${-D/2}px` — rotation is around the box centre, so the block appears to spin in place rather than swing from one edge.
+`transformOrigin: 50% 50% ${-D/2}px` — rotation pivots around the box centre so the block spins in place.
 
 ---
 
-## Cursor tracking
+## Input
 
+### Desktop — cursor follow
 ```
 mousemove → target.{rx, ry} = cursor-offset × MAX_ROT + IDLE_{RX,RY}
             target.{px, py} = cursor position in %  (perspectiveOrigin)
-rAF loop  → current lerps toward target at 0.08 factor (smooth follow)
+rAF loop  → current lerps toward target at factor 0.08 (smooth follow)
            → sceneRef.style.transform updated imperatively (no re-renders)
 ```
 
 | Constant | Value | Effect |
 |----------|-------|--------|
 | `MAX_ROT` | 75° | Full cursor-edge swing |
-| `IDLE_RX` | −14° | Resting tilt (floor visible) |
-| `IDLE_RY` | −18° | Resting swing (left wall visible) |
+| `IDLE_RX` | −14° | Resting tilt — floor visible |
+| `IDLE_RY` | −18° | Resting swing — left wall visible |
 
-**Why negative IDLE values:** left-wall normal is +X; for it to face the viewer, `sin(RY)` must be negative → `RY < 0`. Floor normal is −Y; `sin(RX)` must be negative → `RX < 0`.
+**Why negative IDLE values:** left-wall normal is +X; visible to viewer when `sin(RY) < 0` → `RY < 0`. Floor normal is −Y; visible when `sin(RX) < 0` → `RX < 0`.
 
-**Touch / pinch-to-scale:** a separate `useEffect` tracks two-finger pinch distance ratio and maps it to the `scale` state (clamped `[0.28, 1.4]`).
+**No rAF jump on first paint:** the initial JSX `transform` on the scene wrapper already includes `rotateX(IDLE_RX) rotateY(IDLE_RY)`, so there is no snap from flat → rotated on the first animation frame.
+
+### Mobile — swipe-to-rotate + pinch-to-scale
+Two independent touch `useEffect`s coexist by checking `touches.length`:
+
+| Gesture | Guard | Action |
+|---------|-------|--------|
+| Single-finger swipe | `touches.length === 1` | Accumulates pixel-delta × 0.28°/px into `target.rx/ry` from the base rotation at touch-start |
+| Two-finger pinch | `touches.length === 2` | Maps `currentDist / startDist` ratio to `scale` state (clamped `[0.28, 1.4]`) |
 
 ---
 
 ## Scale
 
-`pickScale(vw, vh)` maps viewport size to a CSS scale factor applied to the scene wrapper:
+`pickScale(vw, vh)` maps viewport width to a CSS scale factor:
 
 | Viewport | Scale range |
 |----------|-------------|
-| < 640 px | 0.32 – 0.55 |
+| < 640 px  | 0.28 – 0.44 |
 | 640–1024 px | 0.45 – 0.70 |
 | > 1024 px | 0.55 – 0.90 |
 
-The stage element dimensions are `BASE_W × scale` by `BASE_H × scale`. The scene wrapper is full `BASE_W × BASE_H` and scaled via CSS transform, keeping all child pixel values (frame positions, bulb offset, etc.) in unscaled coordinates.
+The **stage** element is sized `BASE_W × scale` by `BASE_H × scale`. The **scene** inside it is full `BASE_W × BASE_H` and CSS-scaled, so all child pixel values (frame positions, bulb coordinates, rim widths) stay in unscaled scene-local units.
 
 ---
 
 ## Lighting
 
-A single warm-yellow bulb hangs from the invisible ceiling at scene position `(170, 110, −260)`. It is a `translate3d` element with two crossed billboard divs (rotated 90° to each other) for a pseudo-3D sphere.
+A single warm-yellow bulb hangs from the invisible ceiling at scene-local position `(bulbX=170, bulbDrop=110, bulbZ=−260)`. It is a `translate3d` element with two crossed billboard divs for a pseudo-3D sphere effect.
 
-Each wall has a `radial-gradient` light overlay anchored at the bulb's projected position on that surface:
+Each surface has a `radial-gradient` light overlay anchored at the bulb's geometric projection:
 
-| Surface | Gradient origin | Derivation |
-|---------|----------------|------------|
+| Surface | Overlay origin | Derivation |
+|---------|---------------|------------|
 | Back wall | `(24%, 23%)` | `(bulbX/W, bulbY/H)` |
-| Left wall | `(50%, 23%)` | `(\|bulbZ\|/D, bulbY/H)` — bulb at mid-depth |
+| Left wall | `(50%, 23%)` | `(\|bulbZ\|/D, bulbY/H)` |
 | Floor | `(24%, 50%)` | `(bulbX/W, \|bulbZ\|/D)` |
 
-Bulb glow colours: `#FFF6CF → #FBE17A → #D9AE48 → #8A6420` (warm gold matching the `mosaic_2.png` floor tile average).
+Bulb colours: `#FFF6CF → #FBE17A → #D9AE48 → #8A6420` (warm gold tuned to the mosaic_2 floor average).
 
 ---
 
 ## Content
 
-### Back wall
-Three individual frames in a row:
-1. `tree.png` (art)
-2. Today's xkcd comic (fetched via `corsproxy.io → xkcd.com/info.0.json`)
-3. `global_warming.png` (art)
+### Back wall — three individual frames
+1. `tree.jpg` (art)
+2. Today's xkcd (fetched from **`/api/xkcd`** — Lambda proxy, no CORS issues)
+3. `global_warming.jpg` (art)
 
-### Left wall
-Two frames:
-1. `kalakaari.png` (art)
-2. Yesterday's xkcd (`xkcd.com/${num−1}/info.0.json`)
+### Left wall — two frames
+1. `kalakaari.jpg` (art)
+2. Yesterday's xkcd (same `/api/xkcd` response, `yesterday` key)
 
 ### Floor
-`mosaic_2.png` tiled as `background-image` on the floor plane with an 18% cream wash overlay and warm-yellow radial glow.
+`mosaic_2.jpg` as `background-image` on the floor plane, with an 18% cream wash and a warm-yellow radial glow from the bulb projection.
 
 ---
 
-## Performance notes
+## xkcd API route
 
-- All cursor/rotation updates are imperative (`element.style.transform`). React state is never written inside the rAF loop.
-- xkcd JSON is fetched once on mount and stored in a `useRef` to avoid re-renders.
-- Stats text updates every 4 frames via `textContent` on a `<pre>` ref — no virtual DOM diffing.
-- `backfaceVisibility: hidden` on frame/bulb content ensures frame images don't bleed through the back of the cube when it rotates past 90°.
-- **Images in `public/`** should be kept compressed (WebP preferred, ≤ 400 KB each). The originals from Gimp exports can be multi-MB — re-export at 1200 px max-width before placing here.
-- On mobile (< 640 px viewport): the 3D room is replaced by a lightweight 2D fallback to avoid GPU overload from `preserve-3d` + `backdrop-filter`.
+The Lambda function exposes `GET /api/xkcd` which calls `xkcd.com/info.0.json` and `xkcd.com/${num-1}/info.0.json` server-side and returns:
+
+```json
+{ "today": { ...xkcd fields... }, "yesterday": { ...xkcd fields... } }
+```
+
+Server-to-server calls have no CORS restrictions, making third-party proxy services unnecessary.
+
+---
+
+## Hero layout
+
+| Viewport | Name / title | Tagline + CTAs | Stats blob |
+|----------|-------------|----------------|------------|
+| Desktop (> 720 px) | `.hero-right-panel` — absolute, overlaps room's right edge | Stacked below badge inside same panel | Bottom-left corner of hero |
+| Mobile (≤ 720 px) | `.mobile-identity` — normal flow section below hero | Same section | Bottom-left corner of hero |
+
+The panel `left` is computed in JS: `calc(50% + ${ROOM_BASE_W × roomScale / 2}px)` and updated on resize. `transformX(-50%)` centres the panel on the room's right edge. The parallax scroll handler preserves this with `translateX(-50%) translateY(-${shift}px)`.
+
+Both name card and stats card use a **2 px solid `--accent-pink` divider line** (bottom for name card, top for stats) matching the navbar active-link style.
+
+---
+
+## Performance
+
+- All rotation/scale updates are imperative (`element.style.transform`, `textContent`). React state is never written inside the rAF loop.
+- xkcd JSON fetched once on mount and stored in a `useRef`.
+- Stats `<pre>` updated every 4 rAF frames via `textContent`.
+- **Images must be JPEG ≤ 400 KB** — originals from Gimp exports can be 10–14 MB. Re-export at ≤ 1200 px max-width before placing in `public/`. Current totals: ~830 KB for all four images.
 
 ---
 
 ## Tuning guide
 
-| You want to… | Change |
-|---|---|
-| More left-wall visible at rest | Make `IDLE_RY` more negative (e.g. −25) |
-| More floor visible at rest | Make `IDLE_RX` more negative (e.g. −20) |
+| Goal | Change |
+|------|--------|
+| More left-wall at rest | `IDLE_RY` more negative (e.g. −25) |
+| More floor at rest | `IDLE_RX` more negative (e.g. −20) |
 | Wider cursor swing | Increase `MAX_ROT` |
-| Faster cursor follow | Increase lerp factor (currently `0.08`) |
-| Change bulb position | Edit `bulbX`, `bulbDrop`, `bulbZ` in the bulb IIFE; update the 3 light overlay origins to match |
-| Replace floor texture | Copy new PNG to `public/`, update `FLOOR_SRC` |
-| Replace wall art | Copy to `public/`, update the `ART` array |
+| Faster follow | Increase lerp factor (default `0.08`) |
+| Swipe sensitivity | Change `SENSITIVITY` constant (default `0.28°/px`) |
+| Move bulb | Edit `bulbX`, `bulbDrop`, `bulbZ`; update the 3 light overlay origins |
+| Replace floor texture | Add JPEG to `public/`, update `FLOOR_SRC` |
+| Replace wall art | Add JPEG to `public/`, update `ART` array |
