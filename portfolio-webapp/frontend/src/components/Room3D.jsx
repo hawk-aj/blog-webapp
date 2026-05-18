@@ -19,6 +19,7 @@ const T = 32; // slab thickness
 const CREAM       = '#FAF7F2';
 const CREAM_EDGE  = '#EFE9DD';
 const INK         = '#1A2744';
+const COBALT      = '#2E5EF5';
 const STEEL       = '#5A7BA8';
 const PINK        = '#F0527A';
 const CLOUD       = '#FFFFFF';
@@ -38,12 +39,24 @@ function pickScale(vw, vh) {
   return Math.max(0.55, Math.min(0.9, (Math.min(vw, vh * 1.6) * 0.5) / BASE_W));
 }
 
+// How far left of the room's left edge the stats card sits.
+// Increase to reduce overlap with the room; 0 = flush with room edge.
+const STATS_LEFT_INSET = 100; // px
+
+// Fractional buffer beyond the stage bounding box where cursor still drives rotation.
+// 0.12 = 12% of stage width/height on each side.
+const CURSOR_BUFFER = 0.20;
+
 // xCenter: pixel x-position for the stage centre (from hero left edge).
-// When null, falls back to '50%' (viewport-centred).
-export default function Room3D({ xCenter = null }) {
-  const stageRef = useRef(null);
-  const sceneRef = useRef(null);
-  const statsRef = useRef(null);
+// roomScaledW: rendered width of the stage in px (used to anchor the stats card).
+// Both fall back gracefully when not provided.
+export default function Room3D({ xCenter = null, roomScaledW = null }) {
+  const stageRef     = useRef(null);
+  const sceneRef     = useRef(null);
+  const statsRef     = useRef(null);
+  const borderRef    = useRef(null);
+  const wasInBounds  = useRef(false);
+  const hideTimer    = useRef(null);
   const fpsRef   = useRef({ frames: 0, last: typeof performance !== 'undefined' ? performance.now() : 0, value: 0, ticks: 0 });
   const xkcdRef  = useRef([null, null]);
   const target   = useRef({ rx: IDLE_RX, ry: IDLE_RY, px: 50, py: 50 });
@@ -63,15 +76,28 @@ export default function Room3D({ xCenter = null }) {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // Single-finger swipe → rotation. Listeners on the stage so only touches
-  // directly over the room trigger the rotation (not anywhere on the page).
+  // Touch — single-finger swipe rotates, two-finger pinch zooms the scene.
+  // Both scoped to the stage element. Pinch is imperative (ref-only, no setState)
+  // so it never triggers a re-render or restarts the rAF loop.
   const swipeRef = useRef({ active: false, x: 0, y: 0, baseRx: IDLE_RX, baseRy: IDLE_RY });
+  const pinchRef = useRef({ active: false, startDist: 0, startMult: 1, currentMult: 1 });
   useEffect(() => {
     const stage = stageRef.current;
     if (!stage) return;
-    const SENSITIVITY = 0.28; // degrees per pixel
+    const SENSITIVITY = 0.28;
+    const touchDist = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
 
     const onTouchStart = (e) => {
+      if (e.touches.length === 2) {
+        pinchRef.current = {
+          active: true,
+          startDist: touchDist(e.touches),
+          startMult: pinchRef.current.currentMult,
+          currentMult: pinchRef.current.currentMult,
+        };
+        swipeRef.current.active = false;
+        return;
+      }
       if (e.touches.length !== 1) return;
       swipeRef.current = {
         active: true,
@@ -82,6 +108,13 @@ export default function Room3D({ xCenter = null }) {
       };
     };
     const onTouchMove = (e) => {
+      if (e.touches.length === 2) {
+        const p = pinchRef.current;
+        if (!p.active) return;
+        const ratio = touchDist(e.touches) / p.startDist;
+        pinchRef.current.currentMult = Math.min(3.0, Math.max(0.4, p.startMult * ratio));
+        return;
+      }
       const s = swipeRef.current;
       if (!s.active || e.touches.length !== 1) return;
       const dx = e.touches[0].clientX - s.x;
@@ -92,7 +125,10 @@ export default function Room3D({ xCenter = null }) {
         rx: s.baseRx - dy * SENSITIVITY,
       };
     };
-    const onTouchEnd = () => { swipeRef.current.active = false; };
+    const onTouchEnd = () => {
+      pinchRef.current.active = false;
+      swipeRef.current.active = false;
+    };
 
     stage.addEventListener('touchstart', onTouchStart, { passive: true });
     stage.addEventListener('touchmove',  onTouchMove,  { passive: true });
@@ -110,10 +146,37 @@ export default function Room3D({ xCenter = null }) {
     const stage = stageRef.current;
     if (!stage) return;
 
+    const showBorder = () => {
+      if (!borderRef.current) return;
+      clearTimeout(hideTimer.current);
+      borderRef.current.style.opacity = '1';
+      hideTimer.current = setTimeout(() => {
+        if (borderRef.current) borderRef.current.style.opacity = '0';
+      }, 1500);
+    };
+
     const onMove = (e) => {
       const r = stage.getBoundingClientRect();
-      const x = (e.clientX - r.left) / r.width;
-      const y = (e.clientY - r.top)  / r.height;
+      const bx = r.width  * CURSOR_BUFFER;
+      const by = r.height * CURSOR_BUFFER;
+      const inBounds = e.clientX >= r.left - bx && e.clientX <= r.right  + bx &&
+                       e.clientY >= r.top  - by && e.clientY <= r.bottom + by;
+
+      if (!inBounds) {
+        if (wasInBounds.current) showBorder(); // just left — flash the boundary
+        wasInBounds.current = false;
+        return;
+      }
+
+      // Re-entered — hide border immediately
+      if (!wasInBounds.current && borderRef.current) {
+        clearTimeout(hideTimer.current);
+        borderRef.current.style.opacity = '0';
+      }
+      wasInBounds.current = true;
+
+      const x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+      const y = Math.min(1, Math.max(0, (e.clientY - r.top)  / r.height));
       target.current = {
         ry:  (x - 0.5) * 2 * MAX_ROT + IDLE_RY,
         rx: -(y - 0.5) * 2 * MAX_ROT + IDLE_RX,
@@ -122,7 +185,7 @@ export default function Room3D({ xCenter = null }) {
       };
     };
 
-    stage.addEventListener('mousemove', onMove);
+    window.addEventListener('mousemove', onMove);
 
     let raf;
     const tick = () => {
@@ -132,8 +195,9 @@ export default function Room3D({ xCenter = null }) {
       c.px += (t.px - c.px) * 0.12;
       c.py += (t.py - c.py) * 0.12;
       if (sceneRef.current) {
+        const effectiveScale = scale * pinchRef.current.currentMult;
         sceneRef.current.style.transform =
-          `scale(${scale}) rotateX(${c.rx}deg) rotateY(${c.ry}deg)`;
+          `scale(${effectiveScale}) rotateX(${c.rx}deg) rotateY(${c.ry}deg)`;
       }
       if (stageRef.current) {
         stageRef.current.style.perspectiveOrigin = `${c.px}% ${c.py}%`;
@@ -162,8 +226,9 @@ export default function Room3D({ xCenter = null }) {
     };
     raf = requestAnimationFrame(tick);
     return () => {
-      stage.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mousemove', onMove);
       cancelAnimationFrame(raf);
+      clearTimeout(hideTimer.current);
     };
   }, [scale]);
 
@@ -265,6 +330,29 @@ export default function Room3D({ xCenter = null }) {
           inset: '-14%',
           background: 'radial-gradient(ellipse at center, rgba(26,39,68,0.10) 0%, rgba(0,0,0,0) 65%)',
           filter: 'blur(10px)',
+          pointerEvents: 'none',
+        }} />
+
+        {/* Cursor-follow boundary indicator — 4-gradient trick gives full control
+            over dash length, gap, weight, and opacity (border-style:dashed can't). */}
+        <div ref={borderRef} style={{
+          position: 'absolute',
+          left:   `-${CURSOR_BUFFER * 100}%`,
+          top:    `-${CURSOR_BUFFER * 100}%`,
+          width:  `${(1 + 2 * CURSOR_BUFFER) * 100}%`,
+          height: `${(1 + 2 * CURSOR_BUFFER) * 100}%`,
+          borderRadius: '6px',
+          backgroundImage: [
+            'repeating-linear-gradient(to right, rgba(46,94,245,0.52) 0, rgba(46,94,245,0.52) 10px, transparent 10px, transparent 22px)',
+            'repeating-linear-gradient(to bottom,rgba(46,94,245,0.52) 0, rgba(46,94,245,0.52) 10px, transparent 10px, transparent 22px)',
+            'repeating-linear-gradient(to left,  rgba(46,94,245,0.52) 0, rgba(46,94,245,0.52) 10px, transparent 10px, transparent 22px)',
+            'repeating-linear-gradient(to top,   rgba(46,94,245,0.52) 0, rgba(46,94,245,0.52) 10px, transparent 10px, transparent 22px)',
+          ].join(','),
+          backgroundSize:     '100% 2.5px, 2.5px 100%, 100% 2.5px, 2.5px 100%',
+          backgroundPosition: 'top, right, bottom, left',
+          backgroundRepeat:   'repeat-x, repeat-y, repeat-x, repeat-y',
+          opacity: 0,
+          transition: 'opacity 0.35s ease',
           pointerEvents: 'none',
         }} />
 
@@ -516,10 +604,12 @@ export default function Room3D({ xCenter = null }) {
         </div>
       </div>
 
-      {/* ── Stats for nerds — flat card, bottom-left corner ─────────── */}
-      <div style={{
+      {/* ── Stats for nerds — anchored to room's bottom-left corner ─── */}
+      <div className="stats-card" style={{
         position: 'absolute',
-        left: 'clamp(20px, 4vw, 48px)',
+        left: xCenter != null && roomScaledW != null
+          ? `${Math.max(12, xCenter - roomScaledW / 2 - STATS_LEFT_INSET)}px`
+          : 'clamp(20px, 4vw, 48px)',
         bottom: 'clamp(20px, 4vw, 48px)',
         background: 'rgba(250, 247, 242, 0.22)',
         backdropFilter: 'blur(6px)',

@@ -5,6 +5,13 @@ import { ArrowRight, Brain, Database, Cpu } from 'lucide-react';
 import axios from 'axios';
 import Room3D from '../components/Room3D';
 
+// ── Tuning ────────────────────────────────────────────────────────────────────
+// Shift the room + stats card left (positive) or right (negative) relative to
+// the nav-right-anchored panel. Increase to open up more space between the room
+// and the name card; decrease (or go negative) to close the gap.
+const ROOM_X_OFFSET = 230; // px — adjust this one value to reposition the room
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Mirror Room3D's sizing so the hero badge can anchor to the room's corner.
 const ROOM_BASE_W = 720;
 const ROOM_BASE_H = 480;
@@ -25,9 +32,16 @@ function getNavLeft(vw) {
 }
 
 function getRoomLayout(vw, vh) {
-  const roomScale = pickRoomScale(vw, vh);
-  const navLeft   = getNavLeft(vw);
-  return { roomScale, navLeft, roomCenterX: navLeft + (ROOM_BASE_W * roomScale) / 2 };
+  const roomScale  = pickRoomScale(vw, vh);
+  const navLeft    = getNavLeft(vw);
+  const navRight   = vw - navLeft; // nav container right edge (symmetric with navLeft)
+  // Panel width mirrors the CSS clamp(220px, 26vw, 320px)
+  const panelWidth = Math.min(320, Math.max(220, vw * 0.26));
+  // Panel's CSS `left` value (element uses translateX(-50%), so right edge = left + panelWidth/2)
+  const panelLeft  = navRight - panelWidth / 2;
+  // Room centre: panel centred on room's right edge, shifted left by ROOM_X_OFFSET
+  const roomCenterX = panelLeft - (ROOM_BASE_W * roomScale) / 2 - ROOM_X_OFFSET;
+  return { roomScale, navLeft, navRight, panelLeft, roomCenterX };
 }
 
 const Home = () => {
@@ -36,10 +50,10 @@ const Home = () => {
   const [loading, setLoading]         = useState(true);
   const [roomLayout, setRoomLayout]   = useState(() =>
     typeof window === 'undefined'
-      ? { roomScale: 0.7, navLeft: 64, roomCenterX: 388 }
+      ? { roomScale: 0.7, navLeft: 64, navRight: 1136, panelLeft: 976, roomCenterX: 652 }
       : getRoomLayout(window.innerWidth, window.innerHeight)
   );
-  const { roomScale, navLeft, roomCenterX } = roomLayout;
+  const { roomScale, navLeft, navRight, panelLeft, roomCenterX } = roomLayout;
 
   const heroRef        = useRef(null);
   const heroContentRef = useRef(null);
@@ -90,16 +104,14 @@ const Home = () => {
     <div className="home">
       {/* Hero */}
       <section className="hero" ref={heroRef}>
-        {/* 3D cursor-tracked room, left edge aligned with the nav logo */}
-        <Room3D xCenter={roomCenterX} />
+        {/* 3D room — right-aligned composition, stats anchored to room's left edge */}
+        <Room3D xCenter={roomCenterX} roomScaledW={ROOM_BASE_W * roomScale} />
 
-        {/* Right panel: badge + tagline + buttons, centred on the room's right edge */}
+        {/* Right panel: badge + tagline + buttons — right edge tracks nav container's right edge */}
         <div
           ref={heroContentRef}
           className="hero-right-panel"
-          style={{
-            left: `calc(50% + ${(ROOM_BASE_W * roomScale) / 2}px)`,
-          }}
+          style={{ left: `${panelLeft}px` }}
         >
           <motion.div
             className="hero-badge"
