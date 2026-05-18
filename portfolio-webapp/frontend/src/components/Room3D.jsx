@@ -48,9 +48,8 @@ const STATS_LEFT_INSET = 100; // px
 const CURSOR_BUFFER = 0.20;
 
 // xCenter: pixel x-position for the stage centre (from hero left edge).
-// roomScaledW: rendered width of the stage in px (used to anchor the stats card).
-// Both fall back gracefully when not provided.
-export default function Room3D({ xCenter = null, roomScaledW = null }) {
+// When null the stage falls back to CSS 50% (viewport-centred).
+export default function Room3D({ xCenter = null }) {
   const stageRef     = useRef(null);
   const sceneRef     = useRef(null);
   const statsRef     = useRef(null);
@@ -125,18 +124,20 @@ export default function Room3D({ xCenter = null, roomScaledW = null }) {
         rx: s.baseRx - dy * SENSITIVITY,
       };
     };
-    const onTouchEnd = () => {
+    const resetTouch = () => {
       pinchRef.current.active = false;
       swipeRef.current.active = false;
     };
 
-    stage.addEventListener('touchstart', onTouchStart, { passive: true });
-    stage.addEventListener('touchmove',  onTouchMove,  { passive: true });
-    stage.addEventListener('touchend',   onTouchEnd);
+    stage.addEventListener('touchstart',  onTouchStart, { passive: true });
+    stage.addEventListener('touchmove',   onTouchMove,  { passive: true });
+    stage.addEventListener('touchend',    resetTouch);
+    stage.addEventListener('touchcancel', resetTouch); // phone call, notification, OS gesture
     return () => {
-      stage.removeEventListener('touchstart', onTouchStart);
-      stage.removeEventListener('touchmove',  onTouchMove);
-      stage.removeEventListener('touchend',   onTouchEnd);
+      stage.removeEventListener('touchstart',  onTouchStart);
+      stage.removeEventListener('touchmove',   onTouchMove);
+      stage.removeEventListener('touchend',    resetTouch);
+      stage.removeEventListener('touchcancel', resetTouch);
     };
   }, []);
 
@@ -607,8 +608,8 @@ export default function Room3D({ xCenter = null, roomScaledW = null }) {
       {/* ── Stats for nerds — anchored to room's bottom-left corner ─── */}
       <div className="stats-card" style={{
         position: 'absolute',
-        left: xCenter != null && roomScaledW != null
-          ? `${Math.max(12, xCenter - roomScaledW / 2 - STATS_LEFT_INSET)}px`
+        left: xCenter != null
+          ? `${Math.max(12, xCenter - (BASE_W * scale) / 2 - STATS_LEFT_INSET)}px`
           : 'clamp(20px, 4vw, 48px)',
         bottom: 'clamp(20px, 4vw, 48px)',
         background: 'rgba(250, 247, 242, 0.22)',
