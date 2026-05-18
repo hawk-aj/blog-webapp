@@ -114,7 +114,7 @@ main { padding-top: 72px; }
   .hero-right-panel { display: none !important; }
 
   /* Compact the hero so the 3D scene is a hero block, not full-screen */
-  .hero { min-height: min(56vw, 70vh); }
+  .hero { min-height: min(70vw, 80vh); }
 
   /* Mobile identity flows below the hero */
   .mobile-identity {

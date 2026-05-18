@@ -69,14 +69,17 @@ Softer than v3 — light themes need lighter shadows.
 
 ## Typography
 
-Two-family pairing: display serif for headings, humanist sans for body.
+Single-family system: everything from the **DM type family** (Google Fonts).
 
 | Role           | Family               | Weight    | Notes                              |
 |----------------|----------------------|-----------|------------------------------------|
-| Display / H1   | `DM Serif Display`   | 400       | Elegant, editorial feel            |
+| Display / H1   | `DM Serif Display`   | 400       | Editorial serif — headings only    |
 | Headings H2–H4 | `DM Serif Display`   | 400       | Slightly smaller scale             |
-| Body           | `Inter`              | 400 / 500 | Existing — keep for consistency    |
-| Mono / code    | `JetBrains Mono`     | 400       | Existing — keep                    |
+| Body / UI      | `DM Sans`            | 400 / 500 / 600 | Replaces Inter; same humanist feel |
+| Mono / code    | `DM Mono`            | 400 / 500 | Replaces JetBrains Mono; closest DM match |
+
+CSS vars: `--font-display`, `--font-primary` (DM Sans), `--font-mono` (DM Mono).
+All three swap at one place in `index.css` `:root`.
 
 ### Type Scale
 | Token      | Size     | Weight | Usage                         |
@@ -133,7 +136,8 @@ Inspired by aither.co. The navbar detaches from the top on scroll and floats as 
   - Hero compacts to `min(56vw, 70vh)` — room visible without full-screen lock
   - Name card + tagline + CTAs move below the hero in normal scroll flow
   - Room still renders (all images are JPEG ≤ 400 KB)
-  - Single-finger swipe rotates the room; two-finger pinch scales it
+  - Single-finger swipe **directly over the room** rotates it; pinch-to-scale disabled (caused crashes)
+  - Room left edge aligns with the nav logo (left edge of the nav container)
 
 ### Buttons
 - **Primary** — `#2E5EF5` fill, white text; hover → `#1A4AD4`; border-radius: `8px`

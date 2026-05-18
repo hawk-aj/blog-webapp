@@ -14,18 +14,39 @@ function pickRoomScale(vw, vh) {
   return Math.max(0.55, Math.min(0.9, (Math.min(vw, vh * 1.6) * 0.5) / ROOM_BASE_W));
 }
 
+// Returns the x-position (px from page left) where the nav logo sits.
+// Mirrors the navbar layout: .navbar has padding = clamp(1.5rem, 5vw, 4rem),
+// .nav-container is max-width 1100px centred within that space.
+function getNavLeft(vw) {
+  const pp = Math.max(24, Math.min(vw * 0.05, 64)); // clamp(1.5rem, 5vw, 4rem) @ 16px
+  const maxW = 1100;
+  const availW = vw - 2 * pp;
+  return availW > maxW ? (availW - maxW) / 2 + pp : pp;
+}
+
+function getRoomLayout(vw, vh) {
+  const roomScale = pickRoomScale(vw, vh);
+  const navLeft   = getNavLeft(vw);
+  return { roomScale, navLeft, roomCenterX: navLeft + (ROOM_BASE_W * roomScale) / 2 };
+}
+
 const Home = () => {
   const [profile, setProfile]         = useState(null);
   const [recentBlogs, setRecentBlogs] = useState([]);
   const [loading, setLoading]         = useState(true);
-  const [roomScale, setRoomScale]     = useState(() =>
-    typeof window === 'undefined' ? 0.7 : pickRoomScale(window.innerWidth, window.innerHeight)
+  const [roomLayout, setRoomLayout]   = useState(() =>
+    typeof window === 'undefined'
+      ? { roomScale: 0.7, navLeft: 64, roomCenterX: 388 }
+      : getRoomLayout(window.innerWidth, window.innerHeight)
   );
+  const { roomScale, navLeft, roomCenterX } = roomLayout;
+
   const heroRef        = useRef(null);
   const heroContentRef = useRef(null);
 
   useEffect(() => {
-    const onResize = () => setRoomScale(pickRoomScale(window.innerWidth, window.innerHeight));
+    const onResize = () =>
+      setRoomLayout(getRoomLayout(window.innerWidth, window.innerHeight));
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
@@ -69,11 +90,10 @@ const Home = () => {
     <div className="home">
       {/* Hero */}
       <section className="hero" ref={heroRef}>
-        {/* 3D cursor-tracked room background (renders the stats blob too) */}
-        <Room3D />
+        {/* 3D cursor-tracked room, left edge aligned with the nav logo */}
+        <Room3D xCenter={roomCenterX} />
 
-        {/* Right panel: badge + tagline + buttons in one flex column,
-            centred on the room's right-edge x-position */}
+        {/* Right panel: badge + tagline + buttons, centred on the room's right edge */}
         <div
           ref={heroContentRef}
           className="hero-right-panel"
