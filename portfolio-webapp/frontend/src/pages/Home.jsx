@@ -15,9 +15,10 @@ const ROOM_X_OFFSET = 230; // px — adjust this one value to reposition the roo
 // Mirror Room3D's sizing so the hero badge can anchor to the room's corner.
 const ROOM_BASE_W = 720;
 const ROOM_BASE_H = 480;
+// Must match pickScale() in Room3D.jsx exactly so roomScaledW stays accurate.
 function pickRoomScale(vw, vh) {
-  if (vw < 640) return Math.max(0.32, Math.min(0.55, (vw * 0.92) / ROOM_BASE_W));
-  if (vw < 1024) return Math.max(0.45, Math.min(0.7, (vw * 0.6) / ROOM_BASE_W));
+  if (vw < 640)  return Math.max(0.28, Math.min(0.44, (vw * 0.82) / ROOM_BASE_W));
+  if (vw < 1024) return Math.max(0.45, Math.min(0.7,  (vw * 0.60) / ROOM_BASE_W));
   return Math.max(0.55, Math.min(0.9, (Math.min(vw, vh * 1.6) * 0.5) / ROOM_BASE_W));
 }
 
@@ -32,14 +33,19 @@ function getNavLeft(vw) {
 }
 
 function getRoomLayout(vw, vh) {
-  const roomScale  = pickRoomScale(vw, vh);
+  const roomScale = pickRoomScale(vw, vh);
+
+  // On mobile (≤ 720px) the hero-right-panel is hidden — just centre the room.
+  // The ROOM_X_OFFSET desktop calculation would produce a negative xCenter on
+  // narrow viewports and push the room completely off-screen.
+  if (vw <= 720) {
+    return { roomScale, navLeft: 0, navRight: vw, panelLeft: vw / 2, roomCenterX: vw / 2 };
+  }
+
   const navLeft    = getNavLeft(vw);
-  const navRight   = vw - navLeft; // nav container right edge (symmetric with navLeft)
-  // Panel width mirrors the CSS clamp(220px, 26vw, 320px)
+  const navRight   = vw - navLeft;
   const panelWidth = Math.min(320, Math.max(220, vw * 0.26));
-  // Panel's CSS `left` value (element uses translateX(-50%), so right edge = left + panelWidth/2)
   const panelLeft  = navRight - panelWidth / 2;
-  // Room centre: panel centred on room's right edge, shifted left by ROOM_X_OFFSET
   const roomCenterX = panelLeft - (ROOM_BASE_W * roomScale) / 2 - ROOM_X_OFFSET;
   return { roomScale, navLeft, navRight, panelLeft, roomCenterX };
 }
@@ -104,8 +110,8 @@ const Home = () => {
     <div className="home">
       {/* Hero */}
       <section className="hero" ref={heroRef}>
-        {/* 3D room — right-aligned composition, stats anchored to room's left edge */}
-        <Room3D xCenter={roomCenterX} roomScaledW={ROOM_BASE_W * roomScale} />
+        {/* 3D room — desktop: right-aligned to nav; mobile: centred */}
+        <Room3D xCenter={roomCenterX} />
 
         {/* Right panel: badge + tagline + buttons — right edge tracks nav container's right edge */}
         <div
