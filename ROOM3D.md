@@ -39,11 +39,13 @@ Each plane also has:
 
 ### Desktop — cursor follow
 ```
-mousemove → target.{rx, ry} = cursor-offset × MAX_ROT + IDLE_{RX,RY}
-            target.{px, py} = cursor position in %  (perspectiveOrigin)
+mousemove (on stage only) → target.{rx, ry} = cursor-offset × MAX_ROT + IDLE_{RX,RY}
+                            target.{px, py} = cursor position in %  (perspectiveOrigin)
+mouseleave (stage)        → target reset to IDLE_{RX,RY} — room settles back gently
 rAF loop  → current lerps toward target at factor 0.08 (smooth follow)
            → sceneRef.style.transform updated imperatively (no re-renders)
 ```
+Cursor tracking is **scoped to the stage element** — moving the mouse elsewhere on the page does not rotate the room.
 
 | Constant | Value | Effect |
 |----------|-------|--------|
@@ -55,13 +57,14 @@ rAF loop  → current lerps toward target at factor 0.08 (smooth follow)
 
 **No rAF jump on first paint:** the initial JSX `transform` on the scene wrapper already includes `rotateX(IDLE_RX) rotateY(IDLE_RY)`, so there is no snap from flat → rotated on the first animation frame.
 
-### Mobile — swipe-to-rotate + pinch-to-scale
-Two independent touch `useEffect`s coexist by checking `touches.length`:
+### Mobile — swipe-to-rotate
+Touch listeners are attached to the **stage element** (not `window`), so only swipes directly over the room trigger rotation. Pinch-to-scale is disabled — it caused crashes on low-end devices.
 
 | Gesture | Guard | Action |
 |---------|-------|--------|
 | Single-finger swipe | `touches.length === 1` | Accumulates pixel-delta × 0.28°/px into `target.rx/ry` from the base rotation at touch-start |
-| Two-finger pinch | `touches.length === 2` | Maps `currentDist / startDist` ratio to `scale` state (clamped `[0.28, 1.4]`) |
+
+`touch-action: none` is set on the stage so the browser does not apply default pan/pinch behaviour when touching the room.
 
 ---
 

@@ -4,30 +4,27 @@ const ART = ['/tree.jpg', '/global_warming.jpg', '/kalakaari.jpg'];
 const FLOOR_SRC = '/mosaic_2.jpg';
 const MAX_ROT = 75;
 // Resting rotation — negative RY swings left wall into view,
-// negative RX tilts floor toward viewer. Kept moderate so cube reads clean.
+// negative RX tilts floor toward viewer.
 const IDLE_RX = -14;
 const IDLE_RY = -18;
-// Use 89.6° instead of a perfect 90° for plane-to-plane rotations so adjacent
-// planes never become exactly coplanar with the camera plane (kills z-fighting +
-// the "flat slab" look at small angles).
+// 89.6° instead of 90° avoids z-fighting / "flat slab" look at small angles.
 const PERP = 89.6;
 
-// Base dimensions at scale=1 (desktop).
 const BASE_W = 720;
 const BASE_H = 480;
 const BASE_D = 520;
-const T = 32; // slab thickness — the chunky "lego" rim around every plane
+const T = 32; // slab thickness
 
-// DESIGN.md tokens used in this component
+// DESIGN.md tokens
 const CREAM       = '#FAF7F2';
-const CREAM_EDGE  = '#EFE9DD'; // slightly darker cream for the rim
+const CREAM_EDGE  = '#EFE9DD';
 const INK         = '#1A2744';
+const COBALT      = '#2E5EF5';
 const STEEL       = '#5A7BA8';
 const PINK        = '#F0527A';
 const CLOUD       = '#FFFFFF';
 
 async function fetchXkcd() {
-  // Routed through our own Lambda (/api/xkcd) — no third-party CORS proxy needed.
   try {
     const { today, yesterday } = await fetch('/api/xkcd').then(r => r.json());
     return [today, yesterday];
@@ -42,11 +39,24 @@ function pickScale(vw, vh) {
   return Math.max(0.55, Math.min(0.9, (Math.min(vw, vh * 1.6) * 0.5) / BASE_W));
 }
 
+// How far left of the room's left edge the stats card sits.
+// Increase to reduce overlap with the room; 0 = flush with room edge.
+const STATS_LEFT_INSET = 100; // px
 
-export default function Room3D() {
-  const stageRef = useRef(null);
-  const sceneRef = useRef(null);
-  const statsRef = useRef(null);
+// Fractional buffer beyond the stage bounding box where cursor still drives rotation.
+// 0.12 = 12% of stage width/height on each side.
+const CURSOR_BUFFER = 0.20;
+
+// xCenter: pixel x-position for the stage centre (from hero left edge).
+// roomScaledW: rendered width of the stage in px (used to anchor the stats card).
+// Both fall back gracefully when not provided.
+export default function Room3D({ xCenter = null, roomScaledW = null }) {
+  const stageRef     = useRef(null);
+  const sceneRef     = useRef(null);
+  const statsRef     = useRef(null);
+  const borderRef    = useRef(null);
+  const wasInBounds  = useRef(false);
+  const hideTimer    = useRef(null);
   const fpsRef   = useRef({ frames: 0, last: typeof performance !== 'undefined' ? performance.now() : 0, value: 0, ticks: 0 });
   const xkcdRef  = useRef([null, null]);
   const target   = useRef({ rx: IDLE_RX, ry: IDLE_RY, px: 50, py: 50 });
@@ -55,7 +65,6 @@ export default function Room3D() {
   const [scale, setScale] = useState(() =>
     typeof window === 'undefined' ? 0.7 : pickScale(window.innerWidth, window.innerHeight)
   );
-  const pinchRef = useRef({ active: false, startDist: 0, startScale: 0.7 });
 
   useEffect(() => {
     fetchXkcd().then((x) => { xkcdRef.current = x; setXkcd(x); });
@@ -67,41 +76,28 @@ export default function Room3D() {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // Pinch-to-scale: two-finger pinch adjusts the room scale directly.
+  // Touch — single-finger swipe rotates, two-finger pinch zooms the scene.
+  // Both scoped to the stage element. Pinch is imperative (ref-only, no setState)
+  // so it never triggers a re-render or restarts the rAF loop.
+  const swipeRef = useRef({ active: false, x: 0, y: 0, baseRx: IDLE_RX, baseRy: IDLE_RY });
+  const pinchRef = useRef({ active: false, startDist: 0, startMult: 1, currentMult: 1 });
   useEffect(() => {
-    const pinchDist = (t) =>
-      Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    const stage = stageRef.current;
+    if (!stage) return;
+    const SENSITIVITY = 0.28;
+    const touchDist = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
 
     const onTouchStart = (e) => {
       if (e.touches.length === 2) {
-        pinchRef.current = { active: true, startDist: pinchDist(e.touches), startScale: scale };
+        pinchRef.current = {
+          active: true,
+          startDist: touchDist(e.touches),
+          startMult: pinchRef.current.currentMult,
+          currentMult: pinchRef.current.currentMult,
+        };
+        swipeRef.current.active = false;
+        return;
       }
-    };
-    const onTouchMove = (e) => {
-      const p = pinchRef.current;
-      if (!p.active || e.touches.length !== 2) return;
-      const ratio = pinchDist(e.touches) / p.startDist;
-      setScale(Math.min(1.4, Math.max(0.28, p.startScale * ratio)));
-    };
-    const onTouchEnd = () => { pinchRef.current.active = false; };
-
-    window.addEventListener('touchstart', onTouchStart, { passive: true });
-    window.addEventListener('touchmove', onTouchMove, { passive: true });
-    window.addEventListener('touchend', onTouchEnd);
-    return () => {
-      window.removeEventListener('touchstart', onTouchStart);
-      window.removeEventListener('touchmove', onTouchMove);
-      window.removeEventListener('touchend', onTouchEnd);
-    };
-  }, [scale]);
-
-  // Single-finger swipe → rotation. Accumulates delta from touch-start so the
-  // finger can start anywhere on screen (not just over the stage).
-  const swipeRef = useRef({ active: false, x: 0, y: 0, baseRx: IDLE_RX, baseRy: IDLE_RY });
-  useEffect(() => {
-    const SENSITIVITY = 0.28; // degrees per pixel of swipe
-
-    const onTouchStart = (e) => {
       if (e.touches.length !== 1) return;
       swipeRef.current = {
         active: true,
@@ -112,6 +108,13 @@ export default function Room3D() {
       };
     };
     const onTouchMove = (e) => {
+      if (e.touches.length === 2) {
+        const p = pinchRef.current;
+        if (!p.active) return;
+        const ratio = touchDist(e.touches) / p.startDist;
+        pinchRef.current.currentMult = Math.min(3.0, Math.max(0.4, p.startMult * ratio));
+        return;
+      }
       const s = swipeRef.current;
       if (!s.active || e.touches.length !== 1) return;
       const dx = e.touches[0].clientX - s.x;
@@ -122,23 +125,56 @@ export default function Room3D() {
         rx: s.baseRx - dy * SENSITIVITY,
       };
     };
-    const onTouchEnd = () => { swipeRef.current.active = false; };
+    const onTouchEnd = () => {
+      pinchRef.current.active = false;
+      swipeRef.current.active = false;
+    };
 
-    window.addEventListener('touchstart', onTouchStart, { passive: true });
-    window.addEventListener('touchmove',  onTouchMove,  { passive: true });
-    window.addEventListener('touchend',   onTouchEnd);
+    stage.addEventListener('touchstart', onTouchStart, { passive: true });
+    stage.addEventListener('touchmove',  onTouchMove,  { passive: true });
+    stage.addEventListener('touchend',   onTouchEnd);
     return () => {
-      window.removeEventListener('touchstart', onTouchStart);
-      window.removeEventListener('touchmove',  onTouchMove);
-      window.removeEventListener('touchend',   onTouchEnd);
+      stage.removeEventListener('touchstart', onTouchStart);
+      stage.removeEventListener('touchmove',  onTouchMove);
+      stage.removeEventListener('touchend',   onTouchEnd);
     };
   }, []);
 
+  // Desktop cursor follow — only when cursor is over the stage.
+  // On leave, target lerps back to idle so the room settles gently.
   useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const showBorder = () => {
+      if (!borderRef.current) return;
+      clearTimeout(hideTimer.current);
+      borderRef.current.style.opacity = '1';
+      hideTimer.current = setTimeout(() => {
+        if (borderRef.current) borderRef.current.style.opacity = '0';
+      }, 1500);
+    };
+
     const onMove = (e) => {
-      const stage = stageRef.current;
-      if (!stage) return;
       const r = stage.getBoundingClientRect();
+      const bx = r.width  * CURSOR_BUFFER;
+      const by = r.height * CURSOR_BUFFER;
+      const inBounds = e.clientX >= r.left - bx && e.clientX <= r.right  + bx &&
+                       e.clientY >= r.top  - by && e.clientY <= r.bottom + by;
+
+      if (!inBounds) {
+        if (wasInBounds.current) showBorder(); // just left — flash the boundary
+        wasInBounds.current = false;
+        return;
+      }
+
+      // Re-entered — hide border immediately
+      if (!wasInBounds.current && borderRef.current) {
+        clearTimeout(hideTimer.current);
+        borderRef.current.style.opacity = '0';
+      }
+      wasInBounds.current = true;
+
       const x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
       const y = Math.min(1, Math.max(0, (e.clientY - r.top)  / r.height));
       target.current = {
@@ -148,6 +184,7 @@ export default function Room3D() {
         py: y * 100,
       };
     };
+
     window.addEventListener('mousemove', onMove);
 
     let raf;
@@ -158,8 +195,9 @@ export default function Room3D() {
       c.px += (t.px - c.px) * 0.12;
       c.py += (t.py - c.py) * 0.12;
       if (sceneRef.current) {
+        const effectiveScale = scale * pinchRef.current.currentMult;
         sceneRef.current.style.transform =
-          `scale(${scale}) rotateX(${c.rx}deg) rotateY(${c.ry}deg)`;
+          `scale(${effectiveScale}) rotateX(${c.rx}deg) rotateY(${c.ry}deg)`;
       }
       if (stageRef.current) {
         stageRef.current.style.perspectiveOrigin = `${c.px}% ${c.py}%`;
@@ -187,14 +225,15 @@ export default function Room3D() {
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => { window.removeEventListener('mousemove', onMove); cancelAnimationFrame(raf); };
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      cancelAnimationFrame(raf);
+      clearTimeout(hideTimer.current);
+    };
   }, [scale]);
 
   const W = BASE_W, H = BASE_H, D = BASE_D;
 
-  // Picture-frame look (DESIGN-friendly: ink border on cloud surface).
-  // backfaceVisibility:hidden so the back of the cube reads as solid cream — not
-  // mirrored content showing through from the front.
   const frameStyle = {
     position: 'absolute',
     background: CLOUD,
@@ -211,8 +250,6 @@ export default function Room3D() {
   };
   const frameImg = { width: '100%', height: '100%', objectFit: 'cover' };
 
-  // Warm light cast that matches the yellow bulb. Wider stops so the wash
-  // is broad and equally radial on each surface (not a tight corner spot).
   const lightOverlay = (ox, oy) => ({
     position: 'absolute', inset: 0,
     background: `radial-gradient(circle at ${ox} ${oy},
@@ -226,13 +263,8 @@ export default function Room3D() {
     WebkitBackfaceVisibility: 'hidden',
   });
 
-  // ---- Rim strips ----
-  // Each plane is a thin slab; the 4 perpendicular rim faces give visible thickness.
-  // Rims protrude from each wall surface in its -normal direction (away from interior).
-
   const rim = { position: 'absolute', left: 0, top: 0, background: CREAM_EDGE };
 
-  // Back wall plane sits at z = -D. Slab extends into z ∈ [-D - T, -D].
   const backWallRims = (
     <>
       <div style={{ ...rim, width: W, height: T,
@@ -246,7 +278,6 @@ export default function Room3D() {
     </>
   );
 
-  // Left wall plane sits at x = 0. Slab extends into x ∈ [-T, 0].
   const leftWallRims = (
     <>
       <div style={{ ...rim, width: T, height: D,
@@ -260,7 +291,6 @@ export default function Room3D() {
     </>
   );
 
-  // Floor plane sits at y = H. Slab extends into y ∈ [H, H + T].
   const floorRims = (
     <>
       <div style={{ ...rim, width: W, height: T,
@@ -278,17 +308,20 @@ export default function Room3D() {
     <div style={{
       position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0,
     }}>
-      {/* 3D stage — centered "lego block" */}
+      {/* 3D stage — pointer-events enabled so mouse/touch are scoped to the room */}
       <div
         ref={stageRef}
         style={{
           position: 'absolute',
-          left: '50%', top: '50%',
+          left: xCenter != null ? `${xCenter}px` : '50%',
+          top: '50%',
           width: W * scale, height: H * scale,
           transform: 'translate(-50%, -50%)',
           perspective: `${1200 * scale}px`,
           perspectiveOrigin: '50% 50%',
           overflow: 'visible',
+          pointerEvents: 'auto',
+          touchAction: 'none',
         }}
       >
         {/* Soft halo so the block reads as a floating object */}
@@ -300,6 +333,29 @@ export default function Room3D() {
           pointerEvents: 'none',
         }} />
 
+        {/* Cursor-follow boundary indicator — 4-gradient trick gives full control
+            over dash length, gap, weight, and opacity (border-style:dashed can't). */}
+        <div ref={borderRef} style={{
+          position: 'absolute',
+          left:   `-${CURSOR_BUFFER * 100}%`,
+          top:    `-${CURSOR_BUFFER * 100}%`,
+          width:  `${(1 + 2 * CURSOR_BUFFER) * 100}%`,
+          height: `${(1 + 2 * CURSOR_BUFFER) * 100}%`,
+          borderRadius: '6px',
+          backgroundImage: [
+            'repeating-linear-gradient(to right, rgba(46,94,245,0.52) 0, rgba(46,94,245,0.52) 10px, transparent 10px, transparent 22px)',
+            'repeating-linear-gradient(to bottom,rgba(46,94,245,0.52) 0, rgba(46,94,245,0.52) 10px, transparent 10px, transparent 22px)',
+            'repeating-linear-gradient(to left,  rgba(46,94,245,0.52) 0, rgba(46,94,245,0.52) 10px, transparent 10px, transparent 22px)',
+            'repeating-linear-gradient(to top,   rgba(46,94,245,0.52) 0, rgba(46,94,245,0.52) 10px, transparent 10px, transparent 22px)',
+          ].join(','),
+          backgroundSize:     '100% 2.5px, 2.5px 100%, 100% 2.5px, 2.5px 100%',
+          backgroundPosition: 'top, right, bottom, left',
+          backgroundRepeat:   'repeat-x, repeat-y, repeat-x, repeat-y',
+          opacity: 0,
+          transition: 'opacity 0.35s ease',
+          pointerEvents: 'none',
+        }} />
+
         <div
           ref={sceneRef}
           style={{
@@ -307,8 +363,6 @@ export default function Room3D() {
             left: '50%', top: '50%',
             width: W, height: H,
             marginLeft: -W / 2, marginTop: -H / 2,
-            // Include IDLE rotations in initial render so there is no jump
-            // on the first rAF tick from "flat" to "rotated".
             transform: `scale(${scale}) rotateX(${IDLE_RX}deg) rotateY(${IDLE_RY}deg)`,
             transformOrigin: `50% 50% ${-D / 2}px`,
             transformStyle: 'preserve-3d',
@@ -317,7 +371,6 @@ export default function Room3D() {
         >
           {/* ── Back wall ───────────────────────────────────────────── */}
           {backWallRims}
-          {/* exterior back face — visible when the cube rotates past 90° */}
           <div style={{
             position: 'absolute', left: 0, top: 0,
             width: W, height: H,
@@ -337,12 +390,7 @@ export default function Room3D() {
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
           }}>
-            {/* Bulb sits at scene (170, 110, -260); projects onto the back wall
-                at (170/720, 110/480) ≈ (24%, 23%) */}
             <div style={lightOverlay('24%', '23%')} />
-
-            {/* Three individual frames across the back wall:
-                left art · today's xkcd (cloud panel) · right art */}
             {(() => {
               const fw = 140, fh = 180, gap = 22;
               const totalW = fw * 3 + gap * 2;
@@ -362,7 +410,7 @@ export default function Room3D() {
                       <>
                         <div style={{
                           color: PINK,
-                          fontFamily: "'JetBrains Mono', monospace",
+                          fontFamily: "'DM Mono', monospace",
                           fontSize: 8,
                           letterSpacing: '0.08em',
                           textTransform: 'uppercase',
@@ -389,19 +437,17 @@ export default function Room3D() {
             })()}
           </div>
 
-          {/* ── Hanging bulb — free 3D object dangling from the (invisible) ceiling ── */}
+          {/* ── Hanging bulb ─────────────────────────────────────────── */}
           {(() => {
-            const bulbX = 170;          // x inside the room
-            const bulbZ = -D + 260;     // z (some distance forward from the back wall)
-            const bulbDrop = 110;       // how far below the ceiling it hangs
-            const bulbR = 13;           // bulb radius
-            // Two crossed billboards give the bulb a 3D feel as the room rotates.
+            const bulbX = 170;
+            const bulbZ = -D + 260;
+            const bulbDrop = 110;
+            const bulbR = 13;
             const sphere = (rotY = 0) => ({
               position: 'absolute',
               left: -bulbR, top: -bulbR,
               width: bulbR * 2, height: bulbR * 2,
               borderRadius: '50%',
-              // Warm yellow tuned to the floor mosaic — softer than cobalt at this scale
               background: `radial-gradient(circle at 35% 30%, #FFF6CF 0%, #FBE17A 30%, #D9AE48 65%, #8A6420 100%)`,
               boxShadow: `0 0 22px 8px rgba(217, 174, 72, 0.48), 0 0 80px 36px rgba(217, 174, 72, 0.20)`,
               transform: `rotateY(${rotY}deg)`,
@@ -416,7 +462,6 @@ export default function Room3D() {
                 transformStyle: 'preserve-3d',
                 pointerEvents: 'none',
               }}>
-                {/* stem: thin vertical bar going up to the ceiling at y = 0 */}
                 <div style={{
                   position: 'absolute',
                   left: -1, top: -bulbDrop,
@@ -425,7 +470,6 @@ export default function Room3D() {
                   opacity: 0.85,
                   backfaceVisibility: 'hidden',
                 }} />
-                {/* tiny ceiling mount disc */}
                 <div style={{
                   position: 'absolute',
                   left: -6, top: -bulbDrop - 2,
@@ -434,7 +478,6 @@ export default function Room3D() {
                   borderRadius: 2,
                   backfaceVisibility: 'hidden',
                 }} />
-                {/* socket cap */}
                 <div style={{
                   position: 'absolute',
                   left: -5, top: -bulbR - 4,
@@ -443,7 +486,6 @@ export default function Room3D() {
                   borderRadius: 2,
                   backfaceVisibility: 'hidden',
                 }} />
-                {/* Two crossed billboards for the glowing bulb itself */}
                 <div style={sphere(0)} />
                 <div style={sphere(90)} />
               </div>
@@ -452,7 +494,6 @@ export default function Room3D() {
 
           {/* ── Left wall ───────────────────────────────────────────── */}
           {leftWallRims}
-          {/* exterior back face of left wall */}
           <div style={{
             position: 'absolute',
             width: D, height: H,
@@ -475,10 +516,7 @@ export default function Room3D() {
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
           }}>
-            {/* Left wall: bulb projects to (|z|/D, y/H) = (260/520, 110/480) ≈ (50%, 23%) */}
             <div style={lightOverlay('50%', '23%')} />
-
-            {/* Art frame: kalakaari */}
             <div style={{
               ...frameStyle,
               width: 170, height: 200,
@@ -486,8 +524,6 @@ export default function Room3D() {
             }}>
               <img src={ART[2]} alt="" style={frameImg} />
             </div>
-
-            {/* xkcd frame: yesterday */}
             <div style={{
               ...frameStyle,
               width: 170, height: 200,
@@ -499,7 +535,7 @@ export default function Room3D() {
                 <>
                   <div style={{
                     color: PINK,
-                    fontFamily: "'JetBrains Mono', monospace",
+                    fontFamily: "'DM Mono', monospace",
                     fontSize: 9,
                     letterSpacing: '0.08em',
                     textTransform: 'uppercase',
@@ -529,7 +565,6 @@ export default function Room3D() {
 
           {/* ── Floor ───────────────────────────────────────────────── */}
           {floorRims}
-          {/* exterior underside of floor */}
           <div style={{
             position: 'absolute',
             width: W, height: D,
@@ -551,8 +586,6 @@ export default function Room3D() {
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             borderRadius: 4,
-            // No backfaceVisibility:hidden — viewer looks at the back face of this
-            // rotateX(-90°) plane from above, hiding it would erase the floor image.
           }}>
             <div style={{
               position: 'absolute', inset: 0,
@@ -560,7 +593,6 @@ export default function Room3D() {
             }} />
             <div style={{
               position: 'absolute', inset: 0,
-              /* Floor: bulb projects to (x/W, |z|/D) = (170/720, 260/520) ≈ (24%, 50%) */
               background: `radial-gradient(ellipse at 24% 50%,
                 rgba(251, 225, 122, 0.26) 0%,
                 rgba(251, 225, 122, 0.14) 25%,
@@ -572,22 +604,21 @@ export default function Room3D() {
         </div>
       </div>
 
-      {/* ── Stats for nerds — flat card, bottom-left corner ─────────── */}
-      <div style={{
+      {/* ── Stats for nerds — anchored to room's bottom-left corner ─── */}
+      <div className="stats-card" style={{
         position: 'absolute',
-        left: 'clamp(20px, 4vw, 48px)',
+        left: xCenter != null && roomScaledW != null
+          ? `${Math.max(12, xCenter - roomScaledW / 2 - STATS_LEFT_INSET)}px`
+          : 'clamp(20px, 4vw, 48px)',
         bottom: 'clamp(20px, 4vw, 48px)',
-        // Light cream film + blur for readability over the room
         background: 'rgba(250, 247, 242, 0.22)',
         backdropFilter: 'blur(6px)',
         WebkitBackdropFilter: 'blur(6px)',
         borderRadius: '0 0 4px 4px',
         padding: '10px 12px 14px',
-        // Drop shadow below
         filter: 'drop-shadow(0 10px 24px rgba(26, 39, 68, 0.12))',
         pointerEvents: 'auto',
       }}>
-        {/* Solid pink top divider — matches navbar active link style */}
         <div style={{
           position: 'absolute',
           top: 0, left: 0, right: 0,
@@ -597,7 +628,7 @@ export default function Room3D() {
         }} />
         <div style={{
           color: PINK,
-          fontFamily: "'JetBrains Mono', monospace",
+          fontFamily: "'DM Mono', monospace",
           fontSize: 9.5,
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
@@ -612,7 +643,7 @@ export default function Room3D() {
           style={{
             margin: 0,
             color: INK,
-            fontFamily: "'JetBrains Mono', monospace",
+            fontFamily: "'DM Mono', monospace",
             fontSize: 9.5,
             lineHeight: 1.5,
             whiteSpace: 'pre',

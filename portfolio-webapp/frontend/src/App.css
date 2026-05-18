@@ -113,8 +113,13 @@ main { padding-top: 72px; }
   /* Panel overlaid on the room overflows on small screens — hide it */
   .hero-right-panel { display: none !important; }
 
+  .stats-card {
+    transform: scale(0.5);
+    transform-origin: bottom left;
+  }
+
   /* Compact the hero so the 3D scene is a hero block, not full-screen */
-  .hero { min-height: min(56vw, 70vh); }
+  .hero { min-height: min(70vw, 80vh); }
 
   /* Mobile identity flows below the hero */
   .mobile-identity {

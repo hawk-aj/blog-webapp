@@ -5,6 +5,13 @@ import { ArrowRight, Brain, Database, Cpu } from 'lucide-react';
 import axios from 'axios';
 import Room3D from '../components/Room3D';
 
+// ── Tuning ────────────────────────────────────────────────────────────────────
+// Shift the room + stats card left (positive) or right (negative) relative to
+// the nav-right-anchored panel. Increase to open up more space between the room
+// and the name card; decrease (or go negative) to close the gap.
+const ROOM_X_OFFSET = 230; // px — adjust this one value to reposition the room
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Mirror Room3D's sizing so the hero badge can anchor to the room's corner.
 const ROOM_BASE_W = 720;
 const ROOM_BASE_H = 480;
@@ -14,18 +21,46 @@ function pickRoomScale(vw, vh) {
   return Math.max(0.55, Math.min(0.9, (Math.min(vw, vh * 1.6) * 0.5) / ROOM_BASE_W));
 }
 
+// Returns the x-position (px from page left) where the nav logo sits.
+// Mirrors the navbar layout: .navbar has padding = clamp(1.5rem, 5vw, 4rem),
+// .nav-container is max-width 1100px centred within that space.
+function getNavLeft(vw) {
+  const pp = Math.max(24, Math.min(vw * 0.05, 64)); // clamp(1.5rem, 5vw, 4rem) @ 16px
+  const maxW = 1100;
+  const availW = vw - 2 * pp;
+  return availW > maxW ? (availW - maxW) / 2 + pp : pp;
+}
+
+function getRoomLayout(vw, vh) {
+  const roomScale  = pickRoomScale(vw, vh);
+  const navLeft    = getNavLeft(vw);
+  const navRight   = vw - navLeft; // nav container right edge (symmetric with navLeft)
+  // Panel width mirrors the CSS clamp(220px, 26vw, 320px)
+  const panelWidth = Math.min(320, Math.max(220, vw * 0.26));
+  // Panel's CSS `left` value (element uses translateX(-50%), so right edge = left + panelWidth/2)
+  const panelLeft  = navRight - panelWidth / 2;
+  // Room centre: panel centred on room's right edge, shifted left by ROOM_X_OFFSET
+  const roomCenterX = panelLeft - (ROOM_BASE_W * roomScale) / 2 - ROOM_X_OFFSET;
+  return { roomScale, navLeft, navRight, panelLeft, roomCenterX };
+}
+
 const Home = () => {
   const [profile, setProfile]         = useState(null);
   const [recentBlogs, setRecentBlogs] = useState([]);
   const [loading, setLoading]         = useState(true);
-  const [roomScale, setRoomScale]     = useState(() =>
-    typeof window === 'undefined' ? 0.7 : pickRoomScale(window.innerWidth, window.innerHeight)
+  const [roomLayout, setRoomLayout]   = useState(() =>
+    typeof window === 'undefined'
+      ? { roomScale: 0.7, navLeft: 64, navRight: 1136, panelLeft: 976, roomCenterX: 652 }
+      : getRoomLayout(window.innerWidth, window.innerHeight)
   );
+  const { roomScale, navLeft, navRight, panelLeft, roomCenterX } = roomLayout;
+
   const heroRef        = useRef(null);
   const heroContentRef = useRef(null);
 
   useEffect(() => {
-    const onResize = () => setRoomScale(pickRoomScale(window.innerWidth, window.innerHeight));
+    const onResize = () =>
+      setRoomLayout(getRoomLayout(window.innerWidth, window.innerHeight));
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
@@ -69,17 +104,14 @@ const Home = () => {
     <div className="home">
       {/* Hero */}
       <section className="hero" ref={heroRef}>
-        {/* 3D cursor-tracked room background (renders the stats blob too) */}
-        <Room3D />
+        {/* 3D room — right-aligned composition, stats anchored to room's left edge */}
+        <Room3D xCenter={roomCenterX} roomScaledW={ROOM_BASE_W * roomScale} />
 
-        {/* Right panel: badge + tagline + buttons in one flex column,
-            centred on the room's right-edge x-position */}
+        {/* Right panel: badge + tagline + buttons — right edge tracks nav container's right edge */}
         <div
           ref={heroContentRef}
           className="hero-right-panel"
-          style={{
-            left: `calc(50% + ${(ROOM_BASE_W * roomScale) / 2}px)`,
-          }}
+          style={{ left: `${panelLeft}px` }}
         >
           <motion.div
             className="hero-badge"
